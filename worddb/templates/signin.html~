@@ -21,7 +21,7 @@
 <div class="styled-box login-box">
 <form method="post" action="">
 	{% csrf_token %}
-	<h2 class="box-title">Sign In</h2>
+	<h2 class="box-title">Sing IN LOOOOL In</h2>
 
 	<div class="edit-field">
 		<div class="edit-field-label">first name
