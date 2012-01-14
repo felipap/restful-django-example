@@ -106,8 +106,6 @@ def listspanel(request):
 	# if 'new' passed as get arg, user has just signed in
 	# elif 'welcome' passed as get arg. user has just logged in
 	# these arguments are passed by 'signin' and 'login' views
-
-	raise Exception('')
 	
 	try:
 		user = User.objects.get(id=request.session['userid'])
