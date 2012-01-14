@@ -21,9 +21,13 @@
 <!-- BODY -->
 
 <body>
-
-	<h2> words in '{{ parentlist.label }}'</h2>
-	<a href="/">back to lists</a>
+	
+	<div style="border-bottom: 2px dotted #444; display: inline-block">
+		<h2 style="display: inline; font-weight: lighter;"> {{ parentlist.label }}</h2>
+		<h4 style="display: inline; font-weight: lighter; color: #666"> {{ parentlist.description }}</h4>
+		| <a href="/">back to lists</a>
+	</div>
+	
 
 	<ul id="words-wrapper">
 	{% for word in words %}

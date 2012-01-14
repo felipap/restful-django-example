@@ -15,7 +15,7 @@ import hashlib
 ## _in_word_database(list, worid)
 
 def _in_user_database(email, password=None):
-	return bool(email=email, password=password)
+	return bool(_get_user(email=email, password=password))
 	
 def _in_list_database(user, listlabel=None, listid=None):
 	return bool(_get_list(user=user, listlabel=listlabel, listid=listid))
@@ -29,7 +29,7 @@ def _get_user(userid=None, email=None, password=None):
 	
 	try:
 		args = dict()
-		if userid != None: args['userid'] = userid
+		if userid != None: args['id'] = userid
 		if email != None: args['email'] = email
 		if password != None: # THIS IS CRUCIAL, PASSWORD IS HASHED !HERE!
 			args['password'] = get_hash(password)

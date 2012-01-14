@@ -40,7 +40,7 @@ li { displays: block; }
 /******************/
 
 html {
-	background: url(/static/images/bg.png);
+	backgrounds: url(/static/images/bg.png);
 	font-family: "Trebuchet MS", sans-serif;
 	font-size: 13px;
 }
@@ -194,3 +194,29 @@ footer {
 .styled-box.login-box .edit-field-value { width: 340px; }
 
 * {	borde2r: 1px solid black; }
+
+.styled-button {
+	padding: 5px 10px;
+	color: white;
+	font-weight: bold;
+	font-size: 13px;
+	
+	border: 1px solid #008110;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+	
+	text-shadow: 0 1px rgba(0, 0, 0, 0.1);
+
+	background-image: -webkit-linear-gradient(top,#4d90fe,#357ae8);
+	
+	-webkit-transition-duration: 0.2s;
+	-webkit-transition-property: all;
+}
+.styled-button:hover {
+	background-image: -webkit-linear-gradient(top, rgb(77, 144, 254), rgb(71, 135, 237)); }
+.styled-button:focus {
+	border: 1px solid white;
+	background-image: -webkit-linear-gradient(top, rgb(77, 144, 254), rgb(71, 135, 237)); }
+.styled-button:active {
+	-webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+	box-shadow: inset 0 1px 2px rgba(0,0,0,0.3); }
