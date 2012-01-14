@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response, redirect
 from django.core.context_processors import csrf
 from django.utils import simplejson
 
-from app.models import User, List, Word
+from app.models import User, List, Word, get_hash
 from app.decorators import require_login, require_args, require_method
 from app.dbhelper import _get_user, _in_user_database, _get_list, _in_list_database, _get_word, _in_word_database
 
@@ -20,14 +20,11 @@ import logging
 # implement log system and substitute print
 # organize 'custom_render' and coding pattern
 
-# to be used by the views
 
-get_hash = lambda password: hashlib.sha224(password).hexdigest()
+# use render_to decorator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
 JsonObject = lambda obj, *args, **kwargs: HttpResponse(simplejson.dumps(obj, *args, **kwargs))
 JsonError = lambda text: HttpResponseForbidden(simplejson.dumps({'error': True, 'text': text}))
-
-
 
 def custom_render(template, request, context=dict(), *args, **kwargs):
 	return render_to_response(template,
@@ -106,7 +103,7 @@ def listspanel(request):
 	# if 'new' passed as get arg, user has just signed in
 	# elif 'welcome' passed as get arg. user has just logged in
 	# these arguments are passed by 'signin' and 'login' views
-	
+
 	try:
 		user = User.objects.get(id=request.session['userid'])
 	except User.DoesNotExist: # user not in db anymore (any db resets? :)
@@ -164,7 +161,8 @@ IS_VALID_WORD_MEANING = lambda meaning: len(meaning) < 100
 IS_VALID_WORD_ORIGIN = lambda origin: len(origin) < 100
 
 @require_login(True)
-@require_args('POST', 'label', 'description')
+@require_method('POST')
+@require_args('label', 'description')
 def add_list(request):
 	
 	label = request.POST['label'].strip()
@@ -175,8 +173,6 @@ def add_list(request):
 		return JsonObject({'success': False, 'text':'invalid list name. up to 30 characters, only.'})
 	if not IS_VALID_LIST_DESC(description):
 		return JsonObject({'success': False, 'text':'invalid description. up to 140 characters, only.'})
-	if _in_list_database(user=user, listlabel=label):
-		return JsonObject({'success': False, 'text':'duplicated list. choose another label'})
 	
 	l = List(label=label, user=user, description=description)
 	l.save()
@@ -184,7 +180,8 @@ def add_list(request):
 
 
 @require_login(True)
-@require_args('POST', 'listid')
+@require_method('POST')
+@require_args('listid')
 def change_list(request):
 	# passing listid is obligatory, but description and label are optional
 
@@ -210,7 +207,8 @@ def change_list(request):
 
 
 @require_login(True)
-@require_args('POST', 'listid')
+@require_method('POST')
+@require_args('listid')
 def remove_list(request):
 	
 	listid = request.POST['listid']
