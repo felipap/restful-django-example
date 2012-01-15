@@ -40,7 +40,10 @@
 	{% endfor %}
 	</ul>
 
-	<button class="green styled-button" onClick="make_add_list_box()">Add List</button>
+	<button class="styled-button blue" onClick="make_add_list_box()">Add List</button>
+	<button class="styled-button red" onClick="teste(this)">Foo Bar</button>
+	<button class="styled-button green small" onClick="teste(this)">small</button>
+
 
 	<footer>
 		<a href="/account">account</a> | 
@@ -57,6 +60,28 @@
 $('.list .tag').click(function () { location.replace('/lists/'+$(this).find('input[name=label]').val()); })
 $('.edit-list').click(function () { make_edit_list_box($(this).parent('.list')); })
 $('.tag, .button, .auxiliar-tag').addClass('unselectable');
+
+var clicked = 0;
+var clicked_buttons = [];
+function teste(button) {
+	if (button !== clicked_buttons[0] && button !== clicked_buttons[1] && clicked < 5) {
+
+		clicked_buttons.push(button);
+		
+		if (clicked_buttons.length === 1)
+			show_flash_message('i do nothing');
+		else show_flash_message('i also do nothing');	
+		
+		clicked += 1;
+		return;
+	}
+	else if (clicked < 5)
+		show_flash_message('stop clicking!')
+	else if (clicked === 5)
+		show_flash_message('BUM!', { background: 'red'});
+	
+	clicked += 1;
+}
 
 {% autoescape off %}
 {% if flash_msg %}
