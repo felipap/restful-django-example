@@ -22,7 +22,7 @@
 
 <body>
 
-	<h2>lists page</h2>
+	<h2>List Panel</h2>
 	
 	<ul id="lists-wrapper">
 	{% for list in lists %}
@@ -36,7 +36,7 @@
 			<div class="auxiliar-tag edit-list">edit</div>
 		</li>
 	{% empty %}
-		<div>no lists found :P</div>
+		<h4 id="no-lists" style="margin: 10px 10px; color: #666; font-size: 14px;">» no lists found</h4>
 	{% endfor %}
 	</ul>
 
@@ -189,7 +189,8 @@ function add_list_tag(form) {
 		'	<div class="auxiliar-tag edit-list unselectable">edit</div>',
 		'</li>',
 		].join('');
-
+	
+	$("ul#lists-wrapper #no-lists").remove();
 	$(list_tag_html)
 		.hide()
 			.appendTo('ul#lists-wrapper')
@@ -211,7 +212,14 @@ function update_list_tag(form) { // updates the original list tag in the lists p
 
 function remove_list_tag(form) { // removes the original word tag from the list page
 	var o = $("li.list input[name=listid][value="+form['listid']+"]");
-	o.parent().parent().fadeOut( function() { $(this).remove(); });
+	o.parent().parent().fadeOut( function() {
+		$(this).remove();
+		
+		if (!$("ul#lists-wrapper li")[0]) // add 'no list' message?
+			$('<h4 style="margin: 10px 10px; color: #666; font-size: 14px;">» no lists found</h4>').hide()
+				.appendTo('ul#lists-wrapper').fadeIn();
+		
+	});
 }
 
 //************************************
