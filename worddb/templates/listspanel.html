@@ -24,7 +24,45 @@
 
 	<h2>Lists Panel</h2>
 	
-	<ul id="lists-wrapper">
+	<script>
+	function goto_orderby() {
+		var url = '?order_by='+$('#select_orderby').val();
+		if ($("#orderby_reversed")[0].checked)
+			url = url+'&reversed=1';
+		location.replace(url);
+	}
+	</script>
+
+	<div class="orderby-box">
+		<div class="orderby">order by:
+		<select id="select_orderby">
+			<option value="created">created</option>
+			<option value="modified">modified</option>
+			<option value="listlabel">list label</option>
+		</select>
+		</div>
+		<div class="reversed">reversed
+			<INPUT id="orderby_reversed" TYPE="checkbox" NAME="" VALUE="reversed" />
+		</div>
+		<button onClick="goto_orderby">Order</button>
+	</div>
+
+	<div style="display: table; border: 1px dotted #444; background: #efefef; padding: 3px 0px 3px 10px">
+		<h4 style="display: inline; color: #333;">order by: </h4> 
+			<select id="select_orderby">
+				<option value="created">created</option>
+				<option value="modified">modified</option>
+				<option value="listlabel">list label</option>
+			</select>
+
+			<span style="display: inline-block; border: 1px solid #333; margin: -4px 0 -4px 5px; padding: 5px 10px;">
+				reversed
+				<INPUT id="orderby_reversed" TYPE="checkbox" NAME="" VALUE="reversed">
+			</span>
+			<button onClick="goto_orderby()">Go</button>
+	</div>
+
+	<ul id="lists-wrapper" class="tags-wrapper" style="margin: 5px;">
 	{% for list in lists %}
 		<li class="list">
 			<div class="tag" style="display: inline-block">
@@ -36,14 +74,15 @@
 			<div class="auxiliar-tag edit-list">edit</div>
 		</li>
 	{% empty %}
-		<h4 id="no-lists" style="margin: 10px 10px; color: #666; font-size: 14px;">» no lists found</h4>
 	{% endfor %}
 	</ul>
 
 	<button class="styled-button blue" onClick="make_add_list_box()">Add List</button>
-	<button class="styled-button red" onClick="teste(this)">Foo Bar</button>
+	<!--
+	<button class="styled-button red big" onClick="teste(this)">Foo Bar</button>
 	<button class="styled-button green small" onClick="teste(this)">small</button>
-
+	<button class="styled-button gray" onClick="teste(this)">gray</button>
+	-->
 
 	<footer>
 		<a href="/account">account</a> | 
@@ -59,125 +98,23 @@
 
 $('.list .tag').click(function () { location.replace('/lists/'+$(this).find('input[name=label]').val()); })
 $('.edit-list').click(function () { make_edit_list_box($(this).parent('.list')); })
-$('.tag, .button, .auxiliar-tag').addClass('unselectable');
+$('.tag, .button, .auxiliar-tag, .styled-button').addClass('unselectable'); // do it in the html
 
-var clicked = 0;
-var clicked_buttons = [];
-function teste(button) {
-	if (button !== clicked_buttons[0] && button !== clicked_buttons[1] && clicked < 5) {
+// add no-lists-message?
+if (!$("ul.tags-wrapper li")[0])
+	show_no_tags_message("» no lists found");
 
-		clicked_buttons.push(button);
-		
-		if (clicked_buttons.length === 1)
-			show_flash_message('i do nothing');
-		else show_flash_message('i also do nothing');	
-		
-		clicked += 1;
-		return;
-	}
-	else if (clicked < 5)
-		show_flash_message('stop clicking!')
-	else if (clicked === 5)
-		show_flash_message('BUM!', { background: 'red'});
-	
-	clicked += 1;
-}
+{% for msg in flash_messages %}
+	show_flash_message('{{ msg }}', {}, 8000+{{ forloop.counter }}*1000);
+{% endfor %}
 
-{% autoescape off %}
-{% if flash_msg %}
-	show_flash_message('{{ flash_msg.text|escape }}', { {{ flash_msg.css }} }, 8000);
-{% endif %}
-{% endautoescape %}
+{% for error in flash_errors %}
+	show_flash_message('{{ error }}', {'background': '#FB3F51'}, 8000+{{ forloop.counter }}*1000);
+{% endfor %}
 
 // 
-// db access functions
 
-function add_list_db(csrf_token) { // adds a list to the database based on Add-List Box
-	var form = {};
-	$(['label', 'description']).each(function (index, item) {
-		form[item] = $("#edit-wrapper [data-field="+item+"] .edit-field-value").val();
-	});
-	form['csrfmiddlewaretoken'] = csrf_token;
-
-	$.ajax({
-		url: '/lists/api/add_list', 
-		context: this,
-		data: form,
-		type: 'post',
-		dataType: 'json',
-		success: function (data, status) {
-			if (data['success']) {
-				show_flash_message(data['text']);	
-				add_list_tag($.extend(form, {'listid': data['listid']}));
-				remove_add_list_box();
-			} else {
-				show_flash_message(data['text'], {'background': "#F60018"});
-			}
-		},
-		error: function (jqXHR, textStatus, errorThrown) {
-			// wtf?
-		} });
-}
-
-function update_list_db(csrf_token) { // updates the list in the database based on the Edit-List box
-	var form = {};
-	$(['label', 'description']).each(function (index, item) {
-		form[item] = $("#edit-wrapper [data-field="+item+"] .edit-field-value").val();
-	});
-	form['listid'] = $("#edit-wrapper input[name=listid]").val();
-	form['csrfmiddlewaretoken'] = csrf_token;
-
-	$.ajax({
-		url: '/lists/api/change_list', 
-		context: this,
-		data: form,
-		dataType: 'json',
-		type: 'post',
-		success: function (data, status) {
-			if (data['success']) {
-				show_flash_message(data['text']);
-				update_list_tag(form);
-				remove_edit_list_box();
-			} else {
-				console.log(data);
-				show_flash_message(data['text'], {'background': "#F60018"});
-			}
-		},
-		error: function (obj, status) {
-			// wtf?
-			alert(12);
-		} });
-}
-
-function remove_list_db(csrf_token) { // removes the list being edited at the Edit-List from the database
-	var form = {};
-	form['listid'] = $("#edit-wrapper input[name=listid]").val();
-	form['csrfmiddlewaretoken'] = csrf_token;
-
-	$.ajax({
-		url: '/lists/api/remove_list',
-		context: this, 
-		data: form,
-		type: 'post',
-		dataType: 'json', 
-		success: function (data, status) {
-			if (data['success']) {
-				show_flash_message(data['text']);
-				remove_list_tag(form);
-				remove_edit_word_box();
-			} else {
-				show_flash_message(data['text'], {'background': "#F60018"});
-			}
-		},
-		error: function (obj, status) {
-			// wtf?
-		} });
-}
-
-//***********************************
-
-
-function add_list_tag(form) { 	
+function add_list_tag(form) { // adds a list tag to the list
 	var list_tag_html = [
 		'<li class="list">',
 		'	<div class="tag" style="display: inline-block">',
@@ -190,7 +127,7 @@ function add_list_tag(form) {
 		'</li>',
 		].join('');
 	
-	$("ul#lists-wrapper #no-lists").remove();
+	$("ul.tags-wrapper #no-tags-message").remove();
 	$(list_tag_html)
 		.hide()
 			.appendTo('ul#lists-wrapper')
@@ -215,49 +152,14 @@ function remove_list_tag(form) { // removes the original word tag from the list 
 	o.parent().parent().fadeOut( function() {
 		$(this).remove();
 		
-		if (!$("ul#lists-wrapper li")[0]) // add 'no list' message?
-			$('<h4 style="margin: 10px 10px; color: #666; font-size: 14px;">» no lists found</h4>').hide()
-				.appendTo('ul#lists-wrapper').fadeIn();
+		if (!$("ul.tags-wrapper li")[0]) // add 'no tags' message?
+			show_no_tags_message("» no lists found");
 		
 	});
 }
 
-//************************************
 
-function make_add_list_box() { 
-	show_blackout();
-	$(add_list_box_html).hide().appendTo('body').fadeIn();
-	$('#edit-wrapper textarea').autoResize({'extraSpace': 10});
-	$("#edit-wrapper [data-field=label] .edit-field-value").focus();
-}
-
-function remove_add_list_box() { 
-	remove_edit_list_box();
-}
-
-function make_edit_list_box(list) {
-	show_blackout();
-	$(edit_word_box_html).hide().appendTo('body').fadeIn();
-
-	$(['label', 'description']).each(function (index, item) {
-		var value = $(list).find('input[name='+item+']').val();
-		$("#edit-wrapper [data-field="+item+"] .edit-field-value").val(value);
-	});
-	
-	var listid = $(list).find('input[name=listid]').val();
-	$("#edit-wrapper input[name=listid]").val(listid);
-
-	$("#edit-wrapper textarea").autoResize({'extraSpace':10});
-	$("#edit-wrapper [data-field=label] .edit-field-value").focus();
-}
-
-function remove_edit_list_box() {
-	$("#edit-wrapper").fadeOut('fast', function() {
-		$("#edit-wrapper").remove();
-		hide_blackout();
-	});
-}
-
+// HTML for Edit/Add-List boxes
 var edit_word_box_html = ['<div id="edit-wrapper" class="styled-box">',
 
 	'	<div title="close" class="close-button" onClick="remove_edit_list_box()"></div>',
@@ -276,8 +178,8 @@ var edit_word_box_html = ['<div id="edit-wrapper" class="styled-box">',
 	'	<input type="hidden" name="listid" value="" />',
 	'	<div style="clear: both"></div>',
 	'	<div class="buttons">',
-	'	<button class="edit-button button blue" id="save-button" onClick="update_list_db(\'{{csrf_token}}\')">Save</button>',
-	'	<button class="edit-button button red" id="remove-button" onClick="remove_list_db(\'{{csrf_token}}\')">Remove</button>',
+	'	<button class="edit-button button blue unselectable" id="save-button" onClick="update_list_db(\'{{csrf_token}}\')">Save</button>',
+	'	<button class="edit-button button red unselectable" id="remove-button" onClick="remove_list_db(\'{{csrf_token}}\')">Remove</button>',
 	'	</div>',
 
 	'</div>'].join('');
@@ -300,8 +202,8 @@ var add_list_box_html = ['<div id="edit-wrapper" class="styled-box">',
 
 	'	<div style="clear: both"></div>',
 	'	<div class="buttons">',
-	'	<button class="edit-button button blue" id="add-button" onClick="add_list_db(\'{{csrf_token}}\')">Create List</button>',
-	'	<button class="edit-button button red" id="cancel-button" onClick="remove_add_word_box()">Cancel</button>',
+	'	<button class="edit-button button blue unselectable" id="add-button" onClick="add_list_db(\'{{csrf_token}}\')">Create List</button>',
+	'	<button class="edit-button button red unselectable" id="cancel-button" onClick="remove_add_word_box()">Cancel</button>',
 	'	</div>',
 	'</div>'].join('');
 

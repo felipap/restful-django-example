@@ -55,7 +55,7 @@ def require_args(*required_args):
 	def decorator(func):
 		@wraps(func)
 		def wrapper(request, *args, **kwargs):
-			request_method = request.META['REQUEST_METHOD']
+			request_method = request.method
 			if request_method == 'POST': d = request.POST
 			elif request_method == 'GET': d = request.GET
 			else:

@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpRespons
 from django.shortcuts import render_to_response, redirect
 from django.core.context_processors import csrf
 from django.utils import simplejson
+from django import forms
 
 from app.models import User, List, Word, get_hash
 from app.decorators import require_logged, require_not_logged, require_args, require_method, render_to
@@ -13,6 +14,9 @@ from urllib import quote
 import hashlib
 import re
 import logging
+import pdb # import python debugger?
+
+
 
 # TO DOs:
 # recycle db access functions
@@ -34,62 +38,78 @@ def JsonError(**obj):
 ## user account related views
 ###############################################################
 
-IS_VALID_FIRST_NAME = lambda fn: re.match(r'^[_a-zA-Z][a-zA-Z0-9_]{4,20}$', fn)
-IS_VALID_EMAIL = lambda email: re.match(r'^[\w\.-]+@[\w\.-]+\.\w{2,4}$', email)
-IS_VALID_PASSWORD = lambda password: re.match(r'[A-Za-z0-9@#$%^&+=]{6,70}', password)
 
-@require_not_logged
-@render_to('login.html')
-def login(request):
 
-	for arg in ('email', 'password'):
-		if arg not in request.POST: # argument not found, return login page
-			return dict()
+class UserForm(forms.Form):
+
+	first_name = forms.CharField(min_length=3, max_length=21, error_messages={
+		'required':'what should we call you?',
+		'max_length':'name is too long. choose at most 21 characters.',
+		'min_length':'name is too short. choose at least 3 characters.'
+	})
 	
-	email = request.POST.get('email').strip()
-	password = request.POST.get('password').strip()
-
-	u = _get_user(email=email, password=password)	
-	if not u: # if user not found
-		return dict(flash_msg={
-				'text': 'invalid email/password combination',
-				'css': 'background: \'#FB3F51\''})
+	email = forms.EmailField(error_messages={
+		'invalid':'please, enter a valid email address.',
+		'required':'please, enter a valid email address.'
+	})
 	
-	request.session['userid'] = u.id
-	return redirect('/lists?new=1')
+	password = forms.RegexField(r'[A-Za-z0-9@#$%^&+= ]{4,50}$',
+				error_messages={
+		'invalid':'invalid password. choose at least 4 characters, at most 50.',
+		'required':'enter a password.',
+	})
+
+
 
 @require_not_logged
 @render_to('signin.html')
 def signin(request):
 
-	for arg in ('first_name', 'email', 'password'):
-		if not arg in request.POST: # argument not found, return signin page
-			return dict()
-	
-	first_name = request.POST.get('first_name').strip()
-	email = request.POST.get('email').strip()
-	password = request.POST.get('password').strip()
+	if request.method == 'GET':
+		return dict()
 
-	args_tests_pack = [
-		(IS_VALID_FIRST_NAME, first_name,
-			"invalid first name. use only letters, digits and underscores. from 6 up to 21 characters"),
-		(IS_VALID_EMAIL, email,
-			"please enter a valid email"),
-		(IS_VALID_PASSWORD, password,
-			"invalid password. choose at least 6 characters") ]
-	for test in args_tests_pack:
-		if not test[0](test[1]):
-			return dict(flash_msg={'text': test[2], 'css': 'background: \'#FB3F51\''})
+	for arg in ('first_name', 'email', 'password'):
+		if not arg in request.POST: # method is post, but argument not found
+			return JsonObject(success=False, errors=['invalid access'])
+	
+	sign_form = UserForm(request.POST) 
+	if not sign_form.is_valid():
+		return JsonObject(success=False, errors=sum(sign_form.errors.values(),[]))
+
+	first_name = request.POST['first_name']
+	email = request.POST['email']
+	password = request.POST['password']
 
 	if _in_user_database(email=email):
-		return dict(flash_msg={
-				'text': "your email is already registered. haven't you signed up before?",
-				'css': 'background: \'#FB3F51\''})
+		return JsonObject(success=False, errors=["this email is already registered. haven't you signed up before?"])
 	
-	u = User(first_name=first_name, email=email, password=get_hash(password))
-	u.save()
+	u = User.objects.create(first_name=first_name, email=email, password=get_hash(password))
 	request.session['userid'] = u.id
-	return redirect('/lists?new=1')
+	return JsonObject(success=True, text='you\'re being signed in <img src="/static/images/loading.gif" />',
+			redirect='/lists?welcome=0')
+
+
+@require_not_logged
+@render_to('login.html')
+def login(request):
+
+	if request.method == 'GET':
+		return dict()
+	
+	for arg in ('email', 'password'):
+		if arg not in request.POST: # method is post, but argument not found
+			return JsonObject(success=False, errors=['invalid access'])
+	
+	email = request.POST['email']
+	password = request.POST['password']
+
+	u = _get_user(email=email, password=password)	
+	if not u: # if user not found
+		return JsonObject(success=False, errors=['invalid email/password combination'])
+	
+	request.session['userid'] = u.id
+	return JsonObject(success=True, text='you\'re being logged in <img src="/static/images/loading.gif" />',
+			redirect='/lists?welcome=1')
 
 
 @require_logged
@@ -104,9 +124,9 @@ def logout(request):
 @render_to('listspanel.html')
 def listspanel(request):
 
-	# if 'new' passed as get arg, user has just signed in
-	# elif 'welcome' passed as get arg. user has just logged in
-	# these arguments are passed by 'signin' and 'login' views
+	# if '?welcome=0', user has just signed in
+	# elif '?welcome=1' used has just logged in
+	# these arguments are passed by 'signin' and 'login' views, respectively
 
 	try:
 		user = User.objects.get(id=request.session['userid'])
@@ -115,13 +135,24 @@ def listspanel(request):
 			(request.session['userid'], request.META['REMOTE_ADDR'])
 		return redirect('/logout')
 	
-	flash_message = ''
+	messages = []
 	if request.GET.has_key('welcome'): # user is back
-		flash_message = 'welcome back, %s!' % user.first_name
-	elif request.GET.has_key('new'): # new user
-		flash_message = 'welcome, %s!' % user.first_name
+		if request.GET['welcome'] == '0':
+			messages = ['welcome, %s!' % user.first_name,]
+		elif request.GET['welcome'] == '1':
+			messages = ['welcome back, %s!' % user.first_name,]
 
-	return {'lists': user.list_set.all(), 'flash_msg': {'text': flash_message}}
+	order = None
+	if 'order_by' in request.GET:
+		value = request.GET['order_by']
+		if value == 'created': order = 'date_created'
+		elif value == 'modified': order = 'date_modified'
+		elif value == 'listlabel': order = 'label'
+		if 'reversed' in request.GET and request.GET['reversed'] == '1':
+			order = '-'+order
+	
+	lists = user.list_set.all() if not order else user.list_set.order_by(order)
+	return {'lists': lists, 'flash_messages': messages}
 
 
 @require_logged
@@ -139,8 +170,18 @@ def listpage(request, listname):
 		l = user.list_set.get(label=listname)
 	except List.DoesNotExist:
 		raise Http404('list not found')
-
-	return {'words': l.word_set.all(), 'parentlist': l}
+	
+	order = None
+	if 'order_by' in request.GET:
+		value = request.GET['order_by']
+		if value == 'created': order = 'date_created'
+		elif value == 'modified': order = 'date_modified'
+		elif value == 'word': order = 'word'
+		if 'reversed' in request.GET and request.GET['reversed'] == '1':
+			order = '-'+order
+	
+	words = l.word_set.all() if not order else l.word_set.order_by(order)
+	return {'words': words, 'parentlist': l}
 
 ###############################################################
 
@@ -149,33 +190,39 @@ def listpage(request, listname):
 
 # API calls
 
+class ListForm(forms.Form):
+	label = forms.RegexField(r'^[A-Za-z0-9@#$%^&+= ]{1,30}$', error_messages={
+		'invalid':'invalid list name. choose at least 1 character, at most 30.',
+		'required':'enter a list name, at least 3 characters long.',
+	})
+	
+	description = forms.CharField(required=False, max_length=140, error_messages={
+		'max_length':'description is too long. choose at most 140 characters'})
+	
+	def clean_label(self):
+		if self.cleaned_data['label'].strip() == 'api':
+			raise forms.ValidationError('list name invalid') # cannot be "api"
 
 
-IS_VALID_LIST_DESC = lambda desc: len(desc)<=140
-IS_VALID_LIST_LABEL = lambda label: re.match(r'^[A-Za-z0-9@#$%^&+= ]{2,30}$(?<!^api)', label)
-IS_VALID_WORD = lambda word: re.match("[A-Za-z0-9@#$%^&+=]{1,70}", word)
-IS_VALID_WORD_MEANING = lambda meaning: len(meaning) < 100
-IS_VALID_WORD_ORIGIN = lambda origin: len(origin) < 100
 
 @require_logged
 @require_method('POST')
 @require_args('label', 'description')
 def add_list(request):
-	request.POST = request.GET or request.POST
-
-	label = request.POST['label'].strip()
-	description = request.POST['description'].strip()
 
 	user = _get_user(userid=request.session['userid'])
 	
-	if not IS_VALID_LIST_LABEL(label):
-		return JsonObject(success=False, text='invalid list name. up to 30 characters, only.')
-	if not IS_VALID_LIST_DESC(description):
-		return JsonObject(success=False, text='invalid description. up to 140 characters, only.')
-	
-	l = List(label=label, user=user, description=description)
-	l.save()
-	
+	list_form = ListForm(request.POST)
+	if not list_form.is_valid():
+		errors = sum(list_form.errors.values(), [])
+		return JsonObject(success=False, errors=errors)
+
+	fields = dict()
+	for arg in ('label', 'description'):
+		fields[arg] = request.POST[arg]
+
+	l = List.objects.create(user=user, **fields)
+
 	return JsonObject(success=True, text='list created', listid=l.id)
 
 
@@ -185,22 +232,21 @@ def add_list(request):
 def change_list(request):
 	# passing listid is obligatory, but description and label are optional
 
-	listid = request.POST['listid'].strip()
-
 	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=listid)
+	l = _get_list(user=user, listid=request.POST['listid'])
 	if not l:
-		return JsonObject(success=False, text='list not found')
-	
-	label = request.POST.get('label', None)
-	desc = request.POST.get('description', None)
-	
-	if label is not None:
-		if IS_VALID_LIST_LABEL(label.strip()): l.label = label.strip()
-		else: return JsonObject(success=False, text='invalid list label')
-	if desc is not None:
-		if IS_VALID_LIST_DESC(desc.strip()): l.description = desc.strip()
-		else: return JsonObject(success=False, text='invalid list description')
+		return JsonObject(success=False, errors=['list not found',])
+
+	errors = []
+	list_form = ListForm(request.POST)
+	for arg in ('label', 'description'):
+		if arg in request.POST:
+			if list_form[arg].errors:
+				errors += list_form[arg].errors
+			else: 
+				setattr(l, arg, request.POST[arg])
+	if errors:
+		return JsonObject(success=False, errors=errors)
 	
 	l.save()
 	return JsonObject(success=True, text="list \'%s\' updated" % l.label)
@@ -211,14 +257,28 @@ def change_list(request):
 @require_args('listid')
 def remove_list(request):
 	
-	listid = request.POST['listid']
 	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=listid)
+	l = _get_list(user=user, listid=request.POST['listid'])
 
 	if not l:
-		return JsonObject(success=False, text='list not found')
+		return JsonObject(success=False, errors=['list not found',])
+
 	l.delete()
-	return JsonObject(success=True, text='list removed')
+	return JsonObject(success=True, text='list \'%s\' removed' % l.label)
+
+## WORDS
+
+class WordForm(forms.Form):
+	word = forms.CharField(max_length=30, error_messages={
+		'required':'invalid word. choose at least 1 character.',
+		'max_length':'word is too long. choose at most 30 characters.' })
+	
+	meaning = forms.CharField(required=False, max_length=100, error_messages={
+		'max_length':'meaning is too long. choose at most 100 characters.' })
+	
+	origin = forms.CharField(required=False, max_length=100, error_messages={
+		'max_length':'origin is too long. choose at most 100 characters.' })
+
 
 
 @require_logged
@@ -226,63 +286,78 @@ def remove_list(request):
 @require_args('listid', 'word', 'meaning', 'origin')
 def add_word(request):
 
-	word = request.POST['word'].strip()
-	meaning = request.POST['meaning'].strip()
-	listid = request.POST['listid'].strip()
-	origin = request.POST['origin'].strip()
-
 	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=listid)
-	
-
+	l = _get_list(user=user, listid=request.POST['listid'])
 	if not l:
 		return JsonObject(success=False, text='list not found')
-
-	if not IS_VALID_WORD(word):
-		return JsonObject(success=False, text='invalid word %s' % word)
-	if not IS_VALID_WORD_MEANING(meaning):
-		return JsonObject(success=False, text='invalid word meaning')
-	if not IS_VALID_WORD_ORIGIN(origin):
-		return JsonObject(success=False, text='invalid word origin')
 	
-	w = Word(word=word, meaning=meaning, origin=origin, list=l)
-	w.save()
+	# test incoming data
+	word_form = WordForm(request.POST)
+	if not word_form.is_valid():
+		errors = sum(word_form.errors.values(), [])
+		return JsonObject(success=False, errors=errors)
+	
+	fields = dict()
+	for arg in ('word', 'meaning', 'origin'):
+		fields[arg] = request.POST[arg]
+	w = Word.objects.create(list=l, **fields)
 
 	return JsonObject(success=True, text='word added to \'%s\'' % l.label, wordid=w.id)
 
 
 @require_logged
 @require_method('POST')
-@require_args('wordid', 'listid')
-def change_word(request):
-
-	wordid = request.POST['wordid'].strip()
-	listid = request.POST['listid'].strip()
+@require_args('listid')
+def change_list(request):
+	# passing listid is obligatory, but description and label are optional
 
 	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=listid)
+	l = _get_list(user=user, listid=request.POST['listid'])
 	if not l:
-		return JsonObject(success=False, text='list not found')
-	w = _get_word(list=l, wordid=wordid)
+		return JsonObject(success=False, errors=['list not found',])
+
+	errors = []
+	list_form = ListForm(request.POST)
+	for arg in ('label', 'description'):
+		if arg in request.POST:
+			if list_form[arg].errors:
+				errors += list_form[arg].errors
+			else: 
+				setattr(l, arg, request.POST[arg])
+	if errors:
+		return JsonObject(success=False, errors=errors)
+	
+	l.save()
+	return JsonObject(success=True, text="list \'%s\' updated" % l.label)
+
+
+@require_logged
+@require_method('POST')
+@require_args('wordid', 'listid')
+def change_word(request):
+	# passing listid and wordid is obligatory, but description and label are optional
+	
+	user = _get_user(userid=request.session['userid'])
+	l = _get_list(user=user, listid=request.POST['listid'])
+	if not l:
+		return JsonObject(success=False, errors=['list not found',])
+	w = _get_word(list=l, wordid=request.POST['wordid'])
 	if not w:
 		return JsonObject(success=False, text='word doesn\'t exist')
-	
-	word = request.POST.get('word', None)
-	origin = request.POST.get('origin', None)
-	meaning = request.POST.get('meaning', None)
 
-	if word is not None:
-		if IS_VALID_WORD(word.strip()): w.word = word.strip()
-		else: return JsonObject(success=False, text='invalid word')
-	if meaning is not None:
-		if IS_VALID_WORD_MEANING(meaning.strip()): w.meaning = meaning.strip()
-		else: return JsonObject(success=False, text='invalid word meaning field')
-	if origin is not None:
-		if IS_VALID_WORD_ORIGIN(origin.strip()): w.origin = origin.strip()
-		else: return JsonObject(success=False, text='invalid word origin field')
+	errors = []
+	word_form = WordForm(request.POST)
+	for arg in ('word', 'meaning', 'origin'):
+		if arg in request.POST:
+			if word_form[arg].errors:
+				errors += word_form[arg].errors
+			else:
+				setattr(w, arg, request.POST[arg])
+	if errors:
+		return JsonObject(success=False, errors=errors)
 	
 	w.save()
-	return JsonObject(success=True, text='word updated')
+	return JsonObject(success=True, text="word '%s' updated" % w.word)
 
 
 @require_logged
@@ -290,16 +365,16 @@ def change_word(request):
 @require_args('wordid', 'listid')
 def remove_word(request):
 
-	wordid = request.POST['wordid'].strip()
-	listid = request.POST['listid'].strip()
-
 	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=listid)
+	l = _get_list(user=user, listid=request.POST['listid'])
 
 	if not l:
 		return JsonObject(success=False, text='list not found')
-	w = _get_word(list=l, wordid=wordid)
+
+	w = _get_word(list=l, wordid=request.POST['wordid'])
+	
 	if not w:
 		return JsonObject(success=False, text='word doens\'t exist.')
+
 	w.delete()
 	return JsonObject(success=True, text='word removed from %s ' % l.label)

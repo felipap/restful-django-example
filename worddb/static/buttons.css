@@ -254,3 +254,136 @@
 }
 
 /***************************************************************/
+
+.styled-button {
+	padding: 5px 10px;
+	color: white;
+	font-weight: bold;
+	font-size: 14px;
+	text-align: center;
+	
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+	border: 1px solid transparent;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.1);
+
+	-webkit-transition-duration: 0.2s;
+	-webkit-transition-property: all; }
+
+.styled-button:hover {
+	text-shadow: 0 1px rgba(0, 0, 0, 0.3); }
+
+.styled-button:active {
+	-webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+	moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+	box-shadow: inset 0 1px 2px rgba(0,0,0,0.3); }
+
+	.styled-button.small {
+		font-size: 12px;
+		padding: 3px 5px;
+		border-radius: 2px;
+		border-width: 1px; }
+	.styled-button.small:hover {
+		text-shadow: 0 1px rgba(0, 0, 0, 0.3); }
+	.styled-button.small:active {
+		-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.3);
+		moz-box-shadow: inset 0 1px 1px rgba(0,0,0,0.3);
+		box-shadow: inset 0 1px 1px rgba(0,0,0,0.3); }
+
+	/***/
+
+	.styled-button.big {
+		font-size: 20px;
+		padding: 4px 12px;
+		border-radius: 4px;
+		border-width: 2px; }
+	.styled-button.big:hover {
+		text-shadow: 0 1.5px rgba(0, 0, 0, 0.3); }
+	.styled-button.big:active {
+		-webkit-box-shadow: inset 0 2px 2px rgba(0,0,0,0.3);
+		moz-box-shadow: inset 0 2px 2px rgba(0,0,0,0.3);
+		box-shadow: inset 0 2px 3px rgba(0,0,0,0.3); }
+
+	/***/
+
+	.styled-button.blue {
+		border-color: rgb(48, 121, 237);
+		background-image: -webkit-linear-gradient(top, rgb(77, 144, 254), rgb(70, 125, 233)); }
+
+	.styled-button.blue:hover, .styled-button.blue:focus {
+		background-image: -webkit-linear-gradient(top, rgb(77, 144, 254), rgb(51, 115, 215)); }
+
+	/***/
+
+	.styled-button.red {
+		border-color: rgb(173, 52, 27); /* #992A1B */
+		background-image: -webkit-linear-gradient(top, rgb(221, 75, 57), rgb(209, 72, 54)); }
+	
+	.styled-button.red:hover, .styled-button.red:focus {
+		background-image: -webkit-linear-gradient(top, rgb(221, 75, 57), rgb(203, 60, 45)); }
+	
+	/***/
+
+	.styled-button.green {
+		border-color: rgb(0, 150, 0);
+		background-image: -webkit-linear-gradient(top, rgb(24, 175, 25), rgb(20, 155, 15)); }
+	
+	.styled-button.green:hover, .styled-button.green:focus {
+		background-image: -webkit-linear-gradient(top, rgb(24, 175, 25), rgb(4, 145, 10)); }
+	
+	/***/
+
+	.styled-button.gray {
+		border-color: rgb(105, 105, 105);
+		background-image: -webkit-linear-gradient(top, rgb(150, 150, 150), rgb(130, 130, 130)); }
+	
+	.styled-button.gray:hover, .styled-button.gray:focus {
+		background-image: -webkit-linear-gradient(top, rgb(150, 150, 150), rgb(120, 120, 120)); }
+
+.styled-button:focus {
+	border: 1px solid white; }
+
+
+
+/* 
+.styled-button.red {
+	border: 1px solid transparent;
+	text-shadow: 0 1px rgba(0,0,0,0.1);
+	text-transform: uppercase;
+	background-color: #d14836;
+		background-image: -webkit-gradient(linear, left top, left bottom, from(#dd4b39), to(#d14836));
+		background-image: -webkit-linear-gradient(top,#dd4b39,#d14836);
+		background-image: -moz-linear-gradient(top,#dd4b39,#d14836);
+		background-image: -ms-linear-gradient(top,#dd4b39,#d14836);
+		background-image: -o-linear-gradient(top,#dd4b39,#d14836);
+		background-image: linear-gradient(top,#dd4b39,#d14836); }
+.styled-button.red:hover {
+	border: 1px solid #b0281a;
+	text-shadow: 0 1px rgba(0,0,0,0.3);
+	background-color: #c53727;
+		background-image: -webkit-gradient(linear,left top,left bottom,from(#dd4b39),to(#c53727));
+		background-image: -webkit-linear-gradient(top,#dd4b39,#c53727);
+		background-image: -moz-linear-gradient(top,#dd4b39,#c53727);
+		background-image: -ms-linear-gradient(top,#dd4b39,#c53727);
+		background-image: -o-linear-gradient(top,#dd4b39,#c53727);
+		background-image: linear-gradient(top,#dd4b39,#c53727);
+	-webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+	-moz-box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+	-ms-box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+	-o-box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+	box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+.styled-button.red:active {
+	border: 1px solid #992a1b;
+	background-color: #b0281a;
+		background-image: -webkit-gradient(linear,left top,left bottom,from(#dd4b39),to(#b0281a));
+		background-image: -webkit-linear-gradient(top,#dd4b39,#b0281a);
+		background-image: -moz-linear-gradient(top,#dd4b39,#b0281a);
+		background-image: -ms-linear-gradient(top,#dd4b39,#b0281a);
+		background-image: -o-linear-gradient(top,#dd4b39,#b0281a);
+		background-image: linear-gradient(top,#dd4b39,#b0281a);
+	-webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+	-moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+	box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+}
+*/

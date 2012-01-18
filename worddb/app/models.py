@@ -40,11 +40,14 @@ class List(models.Model):
 	user = models.ForeignKey(User)
 	description = models.CharField(max_length=140)
 
+	date_created = models.DateTimeField(auto_now_add=True)
+	date_modified = models.DateTimeField(auto_now=True)
+
 	def __unicode__(self):
 		return self.label
 	
 	def save(self, *args, **kwargs):
-		assert self.label != 'api'
+		assert self.label != 'api', 'listname can\'t be \'api\''
 		super(List, self).save(*args, **kwargs)
 
 
@@ -52,13 +55,18 @@ class Word(models.Model):
 
 	word = models.CharField(max_length=30)
 
-	date_created = models.DateField(auto_now_add=True)
+	date_created = models.DateTimeField(auto_now_add=True)
 	date_modified = models.DateTimeField(auto_now=True)
 
 	origin = models.CharField(max_length=100, blank=True, null=True)
 	meaning = models.CharField(max_length=100, blank=True, null=True)
 	
 	list = models.ForeignKey(List)
+
+	def save(self, *args, **kwargs):
+		self.list.date_modified = datetime.now()
+		self.list.save() # change 'date_modified' of list when words are modified
+		super(Word, self).save(*args, **kwargs)
 
 	def __unicode__(self):
 		return self.word

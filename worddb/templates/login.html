@@ -20,7 +20,7 @@
 
 <div stysle="text-align: center">
 	<div class="styled-box login-box">
-	<form method="post" action="">
+	<form method="post" action="javascript:login()">
 		{% csrf_token %}
 		<h2 class="box-title">Log in</h2>
 
@@ -31,7 +31,7 @@
 
 		<div class="edit-field">
 			<div class="edit-field-label">password</div>
-			<input class="edit-field-value" type="password" name="password" />
+			<input class="edit-field-value" type="password" maxlength=50 name="password" />
 		</div>
 
 		<div class="buttons">
@@ -46,11 +46,44 @@
 
 $(".edit-field-value[name=email]").focus();
 
-{% autoescape off %}
-{% if flash_msg %}
-	show_flash_message('{{ flash_msg.text|escape }}', { {{ flash_msg.css }} }, 8000);
-{% endif %}
-{% endautoescape %}
+
+{% for msg in flash_messages %}
+	show_flash_message('{{ msg }}', {}, 8000+{{ forloop.counter }}*1000);
+{% endfor %}
+
+{% for error in flash_errors %}
+	show_flash_message('{{ error }}', {'background': '#FB3F51'}, 8000+{{ forloop.counter }}*1000);
+{% endfor %}
+
+//
+
+function login() {
+
+	var form = {};
+	form['email'] = $(".login-box input[name=email]").val();
+	form['password'] = $(".login-box input[name=password]").val();
+	form['csrfmiddlewaretoken'] = $(".login-box input[name=csrfmiddlewaretoken]").val();
+
+	$.ajax({
+		url: '/login/',
+		context: this, 
+		data: form, 
+		dataType: 'json',
+		type: 'post',
+		success: function (data, status) {
+			console.log('data received', data);
+			if (data['success']) {
+				show_flash_message(data['text']);
+				setTimeout(function () { location.replace(data['redirect']); }, 2000);
+			} else 
+				for (var i=0; i<data['errors'].length; i++)
+					show_flash_message(data['errors'][i], {'background': "#F60018"});				
+		}, 
+		errors: function (obj, status) {
+			alert(12); // wtf??
+		} });
+}
+
 
 </script>
 </body>

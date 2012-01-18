@@ -21,19 +21,38 @@
 <!-- BODY -->
 
 <body>
-	
-	<div style="border-bottom: 2px dotted #444; display: inline-block">
+	<script>
+	function goto_orderby(url_start) {
+		if ($("#orderby_reversed")[0].checked)
+			location.replace(url_start+'&reversed=1');
+		else location.replace(url_start);
+	}
+	</script>
+
+	<div style=" display: inline-block">
 		<h2 style="display: inline; font-weight: lighter;"> {{ parentlist.label }}</h2>
 		<h4 style="display: inline; font-weight: lighter; color: #666"> {{ parentlist.description }}</h4>
 		| <a href="/">back to lists</a>
 	</div>
+	<h5>last modified in: {{ parentlist.date_modified }}</h5>
 	
+	<div style="display: table; border: 1px dotted #444; background: #efefef; padding: 3px 0px 3px 10px">
+		<h4 style="display: inline; color: #333;">order by: </h4> 
+			<a style="cursor: pointer" onclick="javascript:goto_orderby('?order_by=created')">created</a> | 
+			<a style="cursor: pointer" onclick="javascript:goto_orderby('?order_by=modified')">modified</a> | 
+			<a style="cursor: pointer" onclick="javascript:goto_orderby('?order_by=word')">word</a>
 
-	<ul id="words-wrapper">
+			<div style="display: inline-block; background: #444; color: white; margin: -4px 0 -4px 5px; padding: 5px 10px;">
+				reversed
+				<INPUT id="orderby_reversed" TYPE="checkbox" NAME="" VALUE="reversed">
+			</div>
+	</div>
+
+	<ul id="words-wrapper" class="tags-wrapper">
 	{% for word in words %}
 		<li class="word">
 			<div class="tag">
-				<span class="word-word">{{ word.word }}</span>
+				<span class="word-word">{{ word.word }}</span> 
 				<input type="hidden" name="word" value="{{ word.word }}">
 				<input type="hidden" name="meaning" value="{{ word.meaning }}">
 				<input type="hidden" name="origin" value="{{ word.origin }}">
@@ -41,7 +60,7 @@
 			</div>
 		</li>
 	{% empty %}
-		<div>no words found</div>
+		
 	{% endfor %}
 	</ul>
 
@@ -59,11 +78,15 @@
 <script type="text/javascript">
 
 $('.word').click(function () { make_edit_word_box(this); })
-$('.tag, .button').addClass('unselectable');
+$('.tag, .button, .auxiliar-tag, .styled-button').addClass('unselectable'); // do it in the html
+
+// add no-words-message?
+if (!$("ul.tags-wrapper li")[0])
+	show_no_tags_message("» no words found");
 
 //
 
-function add_word_tag(form) { 
+function add_word_tag(form) { // adds a word tag to the list
 	var word_tag_html = [
 		'<li class="word">',
 			'<div class="tag">',
@@ -75,6 +98,7 @@ function add_word_tag(form) {
 			'</div>',
 		'</li>'].join('');
 
+	$("ul.tags-wrapper #no-tags-message").remove();
 	$(word_tag_html).hide()
 		.bind("click", function () { make_edit_word_box(this); })
 			.addClass('unselectable')
@@ -92,14 +116,16 @@ function update_word_tag(form) { // updates the original word tag in the page li
 
 function remove_word_tag(form) { // removes the original word tag from the list page
 	var o = $("li.word input[name=wordid][value="+form['wordid']+"]");
-	o.parent().parent().fadeOut( function() { $(this).remove(); });
+	o.parent().parent().fadeOut( function() {
+		$(this).remove();
+
+		if (!$("ul.tags-wrapper li")[0]) // add 'no list' message?
+			show_no_tags_message("» no words found");
+	});
 }
 
 
-/***************************/
-/* HTML for edit/add boxes */
-/***************************/
-
+// HTML for Edit/Add-Word boxes
 var edit_word_box_html = ['<div id="edit-wrapper" class="styled-box">',
 
 	'	<div title="close" class="close-button" onClick="remove_edit_word_box()"></div>',
@@ -124,8 +150,8 @@ var edit_word_box_html = ['<div id="edit-wrapper" class="styled-box">',
 	'	<input type="hidden" name="wordid" value="" />',
 	'	<div style="clear: both"></div>',
 	'	<div class="buttons">',
-	'	<button class="edit-button button blue" id="save-button" onClick="update_word_db({{parentlist.id}},\'{{csrf_token}}\')">Save</button>',
-	'	<button class="edit-button button red" id="remove-button" onClick="remove_word_db({{parentlist.id}}, \'{{csrf_token}}\')">Remove</button>',
+	'	<button class="edit-button button blue unselectable" id="save-button" onClick="update_word_db({{parentlist.id}},\'{{csrf_token}}\')">Save</button>',
+	'	<button class="edit-button button red unselectable" id="remove-button" onClick="remove_word_db({{parentlist.id}}, \'{{csrf_token}}\')">Remove</button>',
 	'	</div>',
 
 	'</div>'].join('');
@@ -140,25 +166,21 @@ var add_word_box_html = ['<div id="edit-wrapper" class="styled-box">',
 	'		<textarea class="edit-field-value"></textarea>',
 	'	</div>',
 
-	'	<div style="clear: both"></div>',
 	'	<div class="edit-field" data-field="meaning">',
 	'		<div class="edit-field-label">meaning:</div>',
 	'		<textarea class="edit-field-value"></textarea>',
 	'	</div>',
 
-	'	<div style="clear: both"></div>',
 	'	<div class="edit-field" data-field="origin">',
 	'		<div class="edit-field-label">origin:</div>',
 	'		<textarea class="edit-field-value"></textarea>',
 	'	</div>',
 
-	'	<div style="clear: both"></div>',
 	'	<div class="buttons">',
-	'	<button class="edit-button button blue" id="add-button" onClick="add_word_db({{parentlist.id}}, \'{{csrf_token}}\')">Add Word</button>',
-	'	<button class="edit-button button red" id="cancel-button" onClick="remove_add_word_box()">Cancel</button>',
+	'	<button class="edit-button button blue unselectable" id="add-button" onClick="add_word_db({{parentlist.id}}, \'{{csrf_token}}\')">Add Word</button>',
+	'	<button class="edit-button button red unselectable" id="cancel-button" onClick="remove_add_word_box()">Cancel</button>',
 	'	</div>',
 	'</div>'].join('');
-
 
 </script>
 
