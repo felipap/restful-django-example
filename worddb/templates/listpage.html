@@ -21,13 +21,6 @@
 <!-- BODY -->
 
 <body>
-	<script>
-	function goto_orderby(url_start) {
-		if ($("#orderby_reversed")[0].checked)
-			location.replace(url_start+'&reversed=1');
-		else location.replace(url_start);
-	}
-	</script>
 
 	<div style=" display: inline-block">
 		<h2 style="display: inline; font-weight: lighter;"> {{ parentlist.label }}</h2>
@@ -36,17 +29,31 @@
 	</div>
 	<h5>last modified in: {{ parentlist.date_modified }}</h5>
 	
-	<div style="display: table; border: 1px dotted #444; background: #efefef; padding: 3px 0px 3px 10px">
-		<h4 style="display: inline; color: #333;">order by: </h4> 
-			<a style="cursor: pointer" onclick="javascript:goto_orderby('?order_by=created')">created</a> | 
-			<a style="cursor: pointer" onclick="javascript:goto_orderby('?order_by=modified')">modified</a> | 
-			<a style="cursor: pointer" onclick="javascript:goto_orderby('?order_by=word')">word</a>
+	
+	<script>
+	function goto_orderby() {
+		var url = '?order_by='+$('#select_orderby').val();
+		if ($("#orderby_reversed")[0].checked)
+			url = url+'&reversed=1';
+		location.replace(url);
+	}
+	</script>
 
-			<div style="display: inline-block; background: #444; color: white; margin: -4px 0 -4px 5px; padding: 5px 10px;">
-				reversed
-				<INPUT id="orderby_reversed" TYPE="checkbox" NAME="" VALUE="reversed">
-			</div>
+	<div class="orderby-box">
+		<div class="orderby">order by:
+		<select id="select_orderby">
+			<option value="created">created</option>
+			<option value="modified">modified</option>
+			<option value="word">word</option>
+		</select>
+		</div>
+		<div class="reversed">reversed
+			<INPUT id="orderby_reversed" TYPE="checkbox" NAME="" VALUE="reversed" />
+		</div>
+		<button onClick="goto_orderby()">Order</button>
 	</div>
+
+
 
 	<ul id="words-wrapper" class="tags-wrapper">
 	{% for word in words %}
