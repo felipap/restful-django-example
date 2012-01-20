@@ -55,19 +55,27 @@ textarea, input {
 	text-align: justify;
 }
 
-footer {
-	position: absolute;
-	width: 300px;
-	left: 50%; 
-	margin-left: -150px;
-	bottom: 10px;
-	text-align: center;
-}
-
 #blackout {
 	position: fixed; top: 0; bottom: 0; left: 0; right: 0; 
 	background: black; 
 	opacity: .6; }
+
+
+footer {
+	position: fixed;
+	left: 0; right: 0; bottom: 0;
+	line-height: 30px;
+	color: white;
+	background: #333;
+	text-align: center;
+	text-shadow: #000 0px 0px 3px;
+	box-shadow: 0 0 10px #333;
+}
+
+footer a, footer a:link, footer a:active { color: #457DC2; }
+footer a:hover { color: #74A5E1;}
+
+
 
 
 #flash-messages-wrapper {
@@ -215,10 +223,6 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 		.styled-box .edit-field .field-info a:hover { text-decoration: underline; }
 		.styled-box .edit-field .field-info.error { background: #c60018; }
 
-a, a:link, a:active { color: #457DC2; }
-a, a:link, a:visited, a:hover, a:active { text-decoration:none; }
-a:hover { color: #222; }
-
 .styled-box.login-box { width: 370px; left: 50%; margin-left: -205px; padding: 15px;}
 .styled-box.login-box .edit-field { margin-top: 5; }
 .styled-box.login-box .edit-field-label { padding: 0 0 5px 0; width: 340px;}
@@ -226,14 +230,15 @@ a:hover { color: #222; }
 
 s* {	border: 1px solid black; }
 
+
 .orderby-box {
 	display: table;
 	background: #444;
 	padding: 2px;
 	border: 1px solid #444;
+	border-radius: 2px;
 }
 .orderby-box div {
-	sbackground: #EEE;
 	color: #eee;
 	display: inline-block;
 	padding: 4px 7px;
@@ -242,16 +247,10 @@ s* {	border: 1px solid black; }
 
 	font-weight: bold;
 	margin-right: 7px;
-	line-height: 24px;
 }
-.orderby-box div select {
-	padding: 2px 6px;
-	font-size: 14px;
-	text-align: center;
-	
-	font-weight: bold;
+.orderby-box select {
+	padding: 2px 3px;
 	color: white;
-	
 	border-radius: 2px;
 	text-shadow: 0 1px rgba(0, 0, 0, 0.1);
 
@@ -260,10 +259,9 @@ s* {	border: 1px solid black; }
 	border-color: rgb(105, 105, 105);
 	background-image: -webkit-linear-gradient(top, rgb(150, 150, 150), rgb(130, 130, 130)); }
 
-	.orderby-box div select:hover, .orderby-box div select:focus {
-		background-image: -webkit-linear-gradient(top, rgb(150, 150, 150), rgb(120, 120, 120)); }
+	.orderby-box select:hover, .orderby-box select:focus {
+		text-shadow: 0 1px rgba(0, 0, 0, 0.3); }
 
-select option { color: black; }
-select option:hover { color: white; }
+	.orderby-box select option { color: black; }
 
-/***********************************/
+
