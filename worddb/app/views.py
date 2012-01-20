@@ -302,7 +302,7 @@ def add_word(request):
 		fields[arg] = request.POST[arg]
 	w = Word.objects.create(list=l, **fields)
 
-	return JsonObject(success=True, text='word added to \'%s\'' % l.label, wordid=w.id)
+	return JsonObject(success=True, text='word \'%s\' added to \'%s\'' % (word_form['word'].value(), l.label), wordid=w.id)
 
 
 @require_logged

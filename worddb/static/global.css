@@ -19,7 +19,7 @@
 	padding: 0;
 }
 
-body { padding: 10px; }
+body { padding: 10px 10px 35px 10px; }
 input { outline: none; }
 
 a, a:link, a:active { color: #457DC2; }
@@ -100,6 +100,7 @@ footer a:hover { color: #74A5E1;}
 /* page content */
 /****************/
 
+ul.tags-wrapper { display: table; }
 ul.tags-wrapper li { list-style-type: none; margin-left: 5px; }
 ul.tags-wrapper .tag { margin: 5px 0; }
 
