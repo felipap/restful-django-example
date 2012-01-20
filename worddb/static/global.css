@@ -228,12 +228,42 @@ s* {	border: 1px solid black; }
 
 .orderby-box {
 	display: table;
-	background: #666;
-	padding: 5px;
-	color: white;
-	font-weight: bold;
+	background: #444;
+	padding: 2px;
+	border: 1px solid #444;
 }
-.orderby-box div { border-right: 2px solid white; }
-.orderby-box div { display: inline-block; margin: 0 5px;}
+.orderby-box div {
+	sbackground: #EEE;
+	color: #eee;
+	display: inline-block;
+	padding: 4px 7px;
+	
+	border-right: 1px solid white;
+
+	font-weight: bold;
+	margin-right: 7px;
+	line-height: 24px;
+}
+.orderby-box div select {
+	padding: 2px 6px;
+	font-size: 14px;
+	text-align: center;
+	
+	font-weight: bold;
+	color: white;
+	
+	border-radius: 2px;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.1);
+
+	-webkit-transition-duration: 0.2s;
+	-webkit-transition-property: all;
+	border-color: rgb(105, 105, 105);
+	background-image: -webkit-linear-gradient(top, rgb(150, 150, 150), rgb(130, 130, 130)); }
+
+	.orderby-box div select:hover, .orderby-box div select:focus {
+		background-image: -webkit-linear-gradient(top, rgb(150, 150, 150), rgb(120, 120, 120)); }
+
+select option { color: black; }
+select option:hover { color: white; }
 
 /***********************************/
