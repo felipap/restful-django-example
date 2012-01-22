@@ -71,7 +71,6 @@ footer {
 	text-shadow: #000 0px 0px 3px;
 	box-shadow: 0 0 10px #333;
 }
-
 footer a, footer a:link, footer a:active { color: #457DC2; }
 footer a:hover { color: #74A5E1;}
 
@@ -100,8 +99,12 @@ footer a:hover { color: #74A5E1;}
 /* page content */
 /****************/
 
+/**********/
+/*  TAGS  */
+/**********/
+
 ul.tags-wrapper { display: table; }
-ul.tags-wrapper li { list-style-type: none; margin-left: 5px; }
+ul.tags-wrapper li { list-style-type: none; margin-left: px; }
 ul.tags-wrapper .tag { margin: 5px 0; }
 
 .tag {
@@ -131,13 +134,23 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 .auxiliar-tag:hover { background: #007A29; }
 .auxiliar-tag:active { position: relative; top: 1px; }
 
-
-.disabled-button, .disabled-button:hover { /* currently unused */
-	color: #e9e9e9;
-	border: solid 1px #555;
-	background: #333; }
-.disabled-button:active { color: #444; }
-
+/* CHANGE THIS CLASS NAME */
+.secondary-info {
+	border: 1px solid #aaa;
+	background: #ccc;
+	padding: 5px;
+	margin-bottom: 10px;
+	color: #222;
+}
+.secondary-info .title {
+	font-weight: bold;
+	font-size: 15px;
+}
+.secondary-info .content {
+	margin-left: 10px;
+	max-width: 300px;
+	overflow: hidden;
+}
 
 /****************/
 /*  STYLED BOX  */
@@ -229,8 +242,6 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 .styled-box.login-box .edit-field-label { padding: 0 0 5px 0; width: 340px;}
 .styled-box.login-box .edit-field-value { width: 340px; }
 
-s* {	border: 1px solid black; }
-
 
 .orderby-box {
 	display: table;
@@ -264,5 +275,3 @@ s* {	border: 1px solid black; }
 		text-shadow: 0 1px rgba(0, 0, 0, 0.3); }
 
 	.orderby-box select option { color: black; }
-
-

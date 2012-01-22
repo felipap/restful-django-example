@@ -14,33 +14,26 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
-
-    url(r'^$', 'app.views.login'),
-    url(r'^login/$', 'app.views.login'),
-    url(r'^signin/$', 'app.views.signin'),
-    url(r'^logout/$', 'app.views.logout'),
-
-    url(r'^lists/$', 'app.views.listspanel'),
-    url(r'^lists/(?P<listname>[\w\d,. -]+)$(?!^lists/api$)', 'app.views.listpage', name="listpage"),
-
-    url(r'^lists/api/add_list', 'app.views.add_list'),
-    url(r'^lists/api/change_list', 'app.views.change_list'),
-    url(r'^lists/api/remove_list', 'app.views.remove_list'),
-
-
-    url(r'^lists/api/add_word$', 'app.views.add_word'),
-    url(r'^lists/api/change_word', 'app.views.change_word'),
-    url(r'^lists/api/remove_word$', 'app.views.remove_word'),
 )
 
-# implement:
-# rename of lists, rename of words
+# from app/views.py
+urlpatterns += patterns('app.views', 
+    url(r'^$', 'login'),
+    url(r'^login/$', 'login'),
+    url(r'^signin/$', 'signin'),
+    url(r'^logout/$', 'logout'),
 
-# PAGES
-# the panel of lists (template: listspanel.html)
-## views.listspanel => ^lists/$
-# the page of a list (template: listpage.html)
-## views.listpage => ^lists/<listname>$
+    url(r'^lists/$', 'listspanel'), # lists panel for the user (template: listspanel.html)
+    url(r'^lists/(?P<listname>[\w\d,. -]+)$(?!^lists/api$)', 'listpage', name="listpage"), # list page (template: listpage.html)
+
+    url(r'^lists/api/add_list', 'add_list'), 
+    url(r'^lists/api/change_list', 'change_list'),
+    url(r'^lists/api/remove_list', 'remove_list'),
+
+    url(r'^lists/api/add_word$', 'add_word'),
+    url(r'^lists/api/change_word', 'change_word'),
+    url(r'^lists/api/remove_word$', 'remove_word'),
+)
 
 # API Calls
 # create new list

@@ -48,6 +48,7 @@
 	</div>
 
 
+
 	<ul id="lists-wrapper" class="tags-wrapper" style="margin: 5px;">
 	{% for list in lists %}
 		<li class="list">
@@ -59,21 +60,27 @@
 			</div>
 			<div class="auxiliar-tag edit-list">edit</div>
 		</li>
+		<!--
+		<div class="secondary-info">
+			<div class="title">>> origin:</div>
+			<div class="content">
+				blablalblalblblalalallalablablalblalblblalalallalablablalblalblblalalallalablablalblalblblalalallala
+			</div>
+		</div>
+		-->
 	{% empty %}
 	{% endfor %}
 	</ul>
 
+
+
+
 	<button class="styled-button blue" onClick="make_add_list_box()">Add List</button>
-	<!--
-	<button class="styled-button red big" onClick="teste(this)">Foo Bar</button>
-	<button class="styled-button green small" onClick="teste(this)">small</button>
-	<button class="styled-button gray" onClick="teste(this)">gray</button>
-	-->
 
 	<footer>
 		<a href="/account">account panel</a> | 
-		<a href="/logout">logout</a> | 
-		<a href="/about">about this app</a>
+		<a href="/about">about this app</a> | 
+		<a href="/logout">logout</a>
 	</footer>
 
 	<div id="blackout" style="display: none"></div>
