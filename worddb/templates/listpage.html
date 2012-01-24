@@ -7,6 +7,7 @@
 <title>words in '{{ parentlist.label }}'</title>
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js" type="text/javascript"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js" type="text/javascript"></script>
 <script src="/static/js/jquery-autoresize.js" type="text/javascript"></script>
 <script src="/static/function.js" type="text/javascript"></script>
 
@@ -57,7 +58,7 @@
 
 	<ul id="words-wrapper" class="tags-wrapper">
 	{% for word in words %}
-		<li class="word">
+		<li class="word" onClick="make_edit_word_box(this)">
 			<div class="tag">
 				<span class="word-word">{{ word.word }}</span> 
 				<input type="hidden" name="word" value="{{ word.word }}">
@@ -67,7 +68,9 @@
 			</div>
 		</li>
 	{% empty %}
-		
+	<script>
+		show_no_tags_message("» no words found");
+	</script>
 	{% endfor %}
 	</ul>
 
@@ -82,36 +85,25 @@
 	<div id="blackout" style="display: none"></div>
 	
 <!-- ####SCRIPT#### -->
-
 <script type="text/javascript">
 
-$('.word').click(function () { make_edit_word_box(this); })
-$('.tag, .button, .auxiliar-tag, .styled-button').addClass('unselectable'); // do it in the html
+// $('.tag, .button, .auxiliar-tag, .styled-button').addClass('unselectable'); // do it in the html!
 
-// add no-words-message?
-if (!$("ul.tags-wrapper li")[0])
-	show_no_tags_message("» no words found");
 
 //
 
-function add_word_tag(form) { // adds a word tag to the list
-	var word_tag_html = [
-		'<li class="word">',
-			'<div class="tag">',
-				'<span class="word-word">'+form['word']+'</span>',
-				'<input type="hidden" name="word" value="'+form['word']+'">',
-				'<input type="hidden" name="meaning" value="'+form['meaning']+'">',
-				'<input type="hidden" name="origin" value="'+form['origin']+'">',
-				'<input type="hidden" name="wordid" value="'+form['wordid']+'">',
-			'</div>',
-		'</li>'].join('');
 
+function add_word_tag(form) { // adds a word tag to the words list in the html
 	$("ul.tags-wrapper #no-tags-message").remove();
-	$(word_tag_html).hide()
-		.bind("click", function () { make_edit_word_box(this); })
-			.addClass('unselectable')
-				.appendTo('ul#words-wrapper')
-					.fadeIn();
+	$.tmpl('<li class="word">\
+			<div class="tag" onClick="make_edit_word_box(this)">\
+				<span class="word-word">${word}</span>\
+				<input type="hidden" name="word" value="${word}">\
+				<input type="hidden" name="meaning" value="${meaning}">\
+				<input type="hidden" name="origin" value="${origin}">\
+				<input type="hidden" name="wordid" value="${wordid}">\
+			</div>\
+		</li>', form).hide().appendTo('ul#words-wrapper').fadeIn();
 }
 
 function update_word_tag(form) { // updates the original word tag in the page list with new edited content
@@ -134,61 +126,48 @@ function remove_word_tag(form) { // removes the original word tag from the list 
 
 
 // HTML for Edit/Add-Word boxes
-var edit_word_box_html = ['<div id="edit-wrapper" class="styled-box">',
+var edit_word_box_html = '<div id="edit-wrapper" class="styled-box">\
+	<div title="close" class="close-button" onClick="remove_edit_word_box()"></div>\
+	<h2 class="box-title">Edit a Word:</h2>\
+	<div class="edit-field" data-field="word">\
+		<div class="edit-field-label">word:</div>\
+		<textarea class="edit-field-value"></textarea>\
+	</div>\
+	<div class="edit-field" data-field="meaning">\
+		<div class="edit-field-label">meaning:</div>\
+		<textarea class="edit-field-value"></textarea>\
+	</div>\
+	<div class="edit-field" data-field="origin">\
+		<div class="edit-field-label">origin:</div>\
+		<textarea class="edit-field-value"></textarea>\
+	</div>\
+	<input type="hidden" name="wordid" value="" />\
+	<div style="clear: both"></div>\
+	<div class="buttons">\
+		<button class="edit-button button blue unselectable" id="save-button" onClick="update_word_db({{parentlist.id}},\'{{csrf_token}}\')">Save</button>\
+		<button class="edit-button button red unselectable" id="remove-button" onClick="remove_word_db({{parentlist.id}}, \'{{csrf_token}}\')">Remove</button>\
+	</div>';
 
-	'	<div title="close" class="close-button" onClick="remove_edit_word_box()"></div>',
-	'   <h2 class="box-title">Edit a Word:</h2>',
-	'	<div class="edit-field" data-field="word">',
-	'		<div class="edit-field-label">word:</div>',
-	'		<textarea class="edit-field-value"></textarea>',
-	'	</div>',
+var add_word_box_html = '<div id="edit-wrapper" class="styled-box">\
+	<div title="close" class="close-button" onClick="remove_add_word_box()"></div>\
+	<div class="box-title">Add a Word:</div>\
+	<div class="edit-field" data-field="word">\
+		<div class="edit-field-label">word:</div>\
+		<textarea class="edit-field-value"></textarea>\
+	</div>\
+	<div class="edit-field" data-field="meaning">\
+		<div class="edit-field-label">meaning:</div>\
+		<textarea class="edit-field-value"></textarea>\
+	</div>\
+	<div class="edit-field" data-field="origin">\
+		<div class="edit-field-label">origin:</div>\
+		<textarea class="edit-field-value"></textarea>\
+	</div>\
+	<div class="buttons">\
+	<button class="edit-button button blue unselectable" id="add-button" onClick="add_word_db({{parentlist.id}}, \'{{csrf_token}}\')">Add Word</button>\
+	<button class="edit-button button red unselectable" id="cancel-button" onClick="remove_add_word_box()">Cancel</button>\
+	</div>';
 
-	'	<div style="clear: both"></div>',
-	'	<div class="edit-field" data-field="meaning">',
-	'		<div class="edit-field-label">meaning:</div>',
-	'		<textarea class="edit-field-value"></textarea>',
-	'	</div>',
-
-	'	<div style="clear: both"></div>',
-	'	<div class="edit-field" data-field="origin">',
-	'		<div class="edit-field-label">origin:</div>',
-	'		<textarea class="edit-field-value"></textarea>',
-	'	</div>',
-
-	'	<input type="hidden" name="wordid" value="" />',
-	'	<div style="clear: both"></div>',
-	'	<div class="buttons">',
-	'	<button class="edit-button button blue unselectable" id="save-button" onClick="update_word_db({{parentlist.id}},\'{{csrf_token}}\')">Save</button>',
-	'	<button class="edit-button button red unselectable" id="remove-button" onClick="remove_word_db({{parentlist.id}}, \'{{csrf_token}}\')">Remove</button>',
-	'	</div>',
-
-	'</div>'].join('');
-
-var add_word_box_html = ['<div id="edit-wrapper" class="styled-box">',
-
-	'	<div title="close" class="close-button" onClick="remove_add_word_box()"></div>',
-	'   <div class="box-title">Add a Word:</div>',
-
-	'	<div class="edit-field" data-field="word">',
-	'		<div class="edit-field-label">word:</div>',
-	'		<textarea class="edit-field-value"></textarea>',
-	'	</div>',
-
-	'	<div class="edit-field" data-field="meaning">',
-	'		<div class="edit-field-label">meaning:</div>',
-	'		<textarea class="edit-field-value"></textarea>',
-	'	</div>',
-
-	'	<div class="edit-field" data-field="origin">',
-	'		<div class="edit-field-label">origin:</div>',
-	'		<textarea class="edit-field-value"></textarea>',
-	'	</div>',
-
-	'	<div class="buttons">',
-	'	<button class="edit-button button blue unselectable" id="add-button" onClick="add_word_db({{parentlist.id}}, \'{{csrf_token}}\')">Add Word</button>',
-	'	<button class="edit-button button red unselectable" id="cancel-button" onClick="remove_add_word_box()">Cancel</button>',
-	'	</div>',
-	'</div>'].join('');
 
 </script>
 

@@ -1,6 +1,7 @@
-# Create your views here.
+#!/usr/bin/env python
+# app/views.py
 
-from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseForbidden
+from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.shortcuts import render_to_response, redirect
 from django.core.context_processors import csrf
 from django.utils import simplejson
@@ -10,35 +11,28 @@ from app.models import User, List, Word, get_hash
 from app.decorators import require_logged, require_not_logged, require_args, require_method, render_to
 from app.dbhelper import _get_user, _in_user_database, _get_list, _in_list_database, _get_word, _in_word_database
 
-from urllib import quote
-import hashlib
-import re
-import logging
-import pdb # import python debugger?
+# import re
+# import logging
+# import pdb # import python debugger?
 
 
 
 # TO DOs:
-# recycle db access functions
-# document general JSON response pattern
-# implement log system and substitute print
+# implement log system
 
-# JsonObject = lambda **obj: HttpResponse(simplejson.dumps(obj))
-# JsonError = lambda text: HttpResponseForbidden(simplejson.dumps({'error': True, 'text': text}))
+
+
+# JSON pattern for the application;
+# succes: True | False => indicates wheter the action succeded
+# text [text] => general text information // substitute by a messages list or smthg...
+# errors: [list] => shows errors associated with the call
 
 def JsonObject(**obj):
-	print "object being returned:", obj
 	return HttpResponse(simplejson.dumps(obj))
-
-def JsonError(**obj):
-	print "error being returned:", obj
-	return HttpResponseForbidden(simplejson.dumps({'error': True, 'text': text}))
 
 
 ## user account related views
 ###############################################################
-
-
 
 class UserForm(forms.Form):
 
@@ -131,8 +125,8 @@ def listspanel(request):
 	try:
 		user = User.objects.get(id=request.session['userid'])
 	except User.DoesNotExist: # user not in db anymore (any db resets? :)
-		print "user %s not found. redirecting ip %s to logout." % \
-			(request.session['userid'], request.META['REMOTE_ADDR'])
+		logger.warning("user %s not found. redirecting ip %s to logout." % \
+			(request.session['userid'], request.META['REMOTE_ADDR']))
 		return redirect('/logout')
 	
 	messages = []
@@ -142,7 +136,7 @@ def listspanel(request):
 		elif request.GET['welcome'] == '1':
 			messages = ['welcome back, %s!' % user.first_name,]
 
-	order = None
+	order = 'created'
 	if 'order_by' in request.GET:
 		value = request.GET['order_by']
 		if value == 'created': order = 'date_created'
@@ -162,8 +156,7 @@ def listpage(request, listname):
 	try:
 		user = User.objects.get(id=request.session['userid'])
 	except User.DoesNotExist: # user not in db anymore (any db resets? :)
-		print "user %s not found. redirecting ip %s to logout." % \
-			(request.session['userid'], request.META['REMOTE_ADDR'])
+		# user not found. redirect to logout.
 		return redirect('/logout')
 	
 	try:
@@ -171,7 +164,7 @@ def listpage(request, listname):
 	except List.DoesNotExist:
 		raise Http404('list not found')
 	
-	order = None
+	order = 'created'
 	if 'order_by' in request.GET:
 		value = request.GET['order_by']
 		if value == 'created': order = 'date_created'
@@ -191,9 +184,10 @@ def listpage(request, listname):
 # API calls
 
 class ListForm(forms.Form):
-	label = forms.RegexField(r'^[A-Za-z0-9@#$%^&+= ]{1,30}$', error_messages={
-		'invalid':'invalid list name. choose at least 1 character, at most 30.',
+	label = forms.CharField(max_length=30, error_messages={
+		'invalid':'invalid list name. choose at least 1 character.',
 		'required':'enter a list name, at least 3 characters long.',
+		'max_length':'list name is too long. choose at most 30 characters.'
 	})
 	
 	description = forms.CharField(required=False, max_length=140, error_messages={
@@ -223,7 +217,7 @@ def add_list(request):
 
 	l = List.objects.create(user=user, **fields)
 
-	return JsonObject(success=True, text='list created', listid=l.id)
+	return JsonObject(success=True, text='list \'%s\' created' % l.label, listid=l.id)
 
 
 @require_logged

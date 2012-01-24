@@ -72,7 +72,6 @@ function show_info_box(textarea) {
 	if (!box) {
 		if (!word) return;
 		box = $(box_field_info_html).hide().appendTo(field).fadeIn();
-		console.log('hi');
 	} else 
 		if (!word)
 			$(box).fadeOut( function() { $(box).remove() });

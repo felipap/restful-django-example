@@ -24,7 +24,7 @@ urlpatterns += patterns('app.views',
     url(r'^logout/$', 'logout'),
 
     url(r'^lists/$', 'listspanel'), # lists panel for the user (template: listspanel.html)
-    url(r'^lists/(?P<listname>[\w\d,. -]+)$(?!^lists/api$)', 'listpage', name="listpage"), # list page (template: listpage.html)
+    url(r'^lists/(?P<listname>[\w\d,. -]+)$(?!^lists/api$)', 'listpage'), # list page (template: listpage.html)
 
     url(r'^lists/api/add_list', 'add_list'), 
     url(r'^lists/api/change_list', 'change_list'),

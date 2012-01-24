@@ -1,15 +1,10 @@
-
-
-# models.py 
+#!/usr/bin/env python
+# app/models.py 
 
 from django.db import models
 
 from datetime import datetime
-import logging
 import hashlib
-
-# todo:
-# make user first_name exceptions (?)
 
 get_hash = lambda password: hashlib.sha224(password).hexdigest()
 
