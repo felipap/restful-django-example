@@ -136,7 +136,7 @@ def listspanel(request):
 		elif request.GET['welcome'] == '1':
 			messages = ['welcome back, %s!' % user.first_name,]
 
-	order = 'created'
+	order = 'date_created'
 	if 'order_by' in request.GET:
 		value = request.GET['order_by']
 		if value == 'created': order = 'date_created'
@@ -164,7 +164,7 @@ def listpage(request, listname):
 	except List.DoesNotExist:
 		raise Http404('list not found')
 	
-	order = 'created'
+	order = 'date_created'
 	if 'order_by' in request.GET:
 		value = request.GET['order_by']
 		if value == 'created': order = 'date_created'
