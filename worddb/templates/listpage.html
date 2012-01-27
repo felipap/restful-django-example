@@ -24,14 +24,13 @@
 <body>
 
 	<div style=" display: inline-block">
-		<h2 style="display: inline; font-weight: lighter;"> {{ parentlist.label }}</h2>
-		<h4 style="display: inline; font-weight: lighter; color: #666"> {{ parentlist.description }}</h4>
+		<h2 style="display: inline; font-weight: lighter;">{{ parentlist.label }}</h2>
+		<h4 style="display: inline; font-weight: lighter; color: #666">« {{ parentlist.description }} »</h4>
 		| <a href="/">back to lists</a>
 	</div>
 	<h5>last modified in: {{ parentlist.date_modified }}</h5>
 	
 	<!-- ORDERBY -->
-
 	<div class="orderby-box">
 		<div><b>order by:</b>
 		<select onCshange="location.replace('?order_by='+$(this).val())">
@@ -88,7 +87,7 @@
 <!-- ####SCRIPT#### -->
 <script type="text/javascript">
 
-// $('.tag, .button, .auxiliar-tag, .styled-button').addClass('unselectable'); // do it in the html!
+// $('.tag, .button, .styled-button').addClass('unselectable'); // do it in the html!
 
 
 //

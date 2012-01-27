@@ -55,13 +55,13 @@
 	<ul id="lists-wrapper" class="tags-wrapper">
 	{% for list in lists %}
 		<li class="list">
-			<a href="/lists/{{ list.label }}" class="tag primary-tag unselectable">
+			<a href="/lists/{{ list.label }}" class="tag primary-tag">
 				<span class="list-label">{{ list.label }}</span>
 					<input type="hidden" name="label" value="{{ list.label }}">
 					<input type="hidden" name="description" value="{{ list.description }}">
 					<input type="hidden" name="listid" value="{{ list.id }}">
 			</a>
-			<button class="tag auxiliar-tag unselectable" onClick="make_edit_list_box($(this).parent('li'));">edit</button>
+			<button class="tag auxiliar-tag" onClick="make_edit_list_box($(this).parent('li'));">edit</button>
 		</li>
 		<!--
 		<div class="secondary-info">
@@ -95,7 +95,7 @@
 <script type="text/javascript">
 
 
-// $('.tag, .button, .auxiliar-tag, .styled-button').addClass('unselectable'); // do it in the html
+// $('.tag, .button, .styled-button').addClass('unselectable'); // do it in the html
 
 _csrf_token = '{{csrf_token}}';
 
@@ -112,13 +112,13 @@ _csrf_token = '{{csrf_token}}';
 function add_list_tag(form) { // ads a list tag to the lists wrapper
 	$("ul.tags-wrapper #no-tags-message").remove();
 	$.tmpl('<li class="list">\
-			<div class="tag primary-tag" style="display: inline-block" onClick="goto_list(\'${label}\')">\
-				<span class="list-label unselectable">${label}</span>\
-				<input type="hidden" name="label" value="${label}">\
-				<input type="hidden" name="description" value="${description}">\
-				<input type="hidden" name="listid" value="${listid}">\
-			</div>\
-			<div class="tag auxiliar-tag unselectable" onClick="make_edit_list_box($(this).parent(\'li\'));">edit</div>\
+			<a href="/lists/${label}" class="tag primary-tag">\
+				<span class="list-label">${label}</span>\
+					<input type="hidden" name="label" value="${label}">\
+					<input type="hidden" name="description" value="${description}">\
+					<input type="hidden" name="listid" value="${listid}">\
+			</a>\
+			<button class="tag auxiliar-tag" onClick="make_edit_list_box($(this).parent(\'li\'));">edit</button>\
 		</li>', form).hide().appendTo('ul#lists-wrapper').fadeIn();
 }
 
