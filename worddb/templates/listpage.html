@@ -30,42 +30,46 @@
 	</div>
 	<h5>last modified in: {{ parentlist.date_modified }}</h5>
 	
-	<!-- ORDERBY -->
-	<div class="orderby-box">
-		<div><b>order by:</b>
-		<select onCshange="location.replace('?order_by='+$(this).val())">
-			<option value="created">created (oldest to newest)</option>
-			<option value="-created">created (newest to oldest)</option>
-			<option value="modified">modified (oldest to newest)</option>
-			<option value="-modified">modified (newest to oldest)</option>
-			<option value="word">word label</option>
-			<option value="-word">word label - inversed</option>
 
-			<script>
-			var options = document.querySelectorAll('.orderby-box select option');
-			for (var i=0; i < options.length; i++)
-				if (options[i].value === '{{ order_by }}') {
-					options[i].selected = true;
-					break;
-				}
-			</script>
-		</select>
+	<div>
+		<!-- ORDERBY -->
+		<div class="orderby-box">
+			<div><b>order by:</b>
+			<select onCshange="location.replace('?order_by='+$(this).val())">
+				<option value="created">created (oldest to newest)</option>
+				<option value="-created">created (newest to oldest)</option>
+				<option value="modified">modified (oldest to newest)</option>
+				<option value="-modified">modified (newest to oldest)</option>
+				<option value="word">word label</option>
+				<option value="-word">word label - inversed</option>
+			
+				<script>
+				var options = document.querySelectorAll('.orderby-box select option');
+				for (var i=0; i < options.length; i++)
+					if (options[i].value === '{{ order_by }}') {
+						options[i].selected = true;
+						break;
+					}
+				</script>
+			</select>
+			</div>
+			<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
 		</div>
-		<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
+		<!-- /ORDERBY -->
+		<button class="styled-button blue" onClick="make_add_list_box()">Add List</button>
 	</div>
-	<!-- /ORDERBY -->
 
 
 	<ul id="words-wrapper" class="tags-wrapper">
 	{% for word in words %}
-		<li class="word" onClick="make_edit_word_box(this)">
-			<a href="#" class="tag primary-tag">
+		<li class="word wrapper">
+			<a href="#" class="tag primary-tag" onClick="make_edit_word_box(this); return false;">
 				<span class="word-word">{{ word.word }}</span> 
 				<input type="hidden" name="word" value="{{ word.word }}">
 				<input type="hidden" name="meaning" value="{{ word.meaning }}">
 				<input type="hidden" name="origin" value="{{ word.origin }}">
 				<input type="hidden" name="wordid" value="{{ word.id }}">
-			</a href="#">
+			</a>
 		</li>
 	{% empty %}
 	<script>
@@ -87,22 +91,18 @@
 <!-- ####SCRIPT#### -->
 <script type="text/javascript">
 
-// $('.tag, .button, .styled-button').addClass('unselectable'); // do it in the html!
-
-
 //
-
 
 function add_word_tag(form) { // adds a word tag to the words list in the html
 	$("ul.tags-wrapper #no-tags-message").remove();
 	$.tmpl('<li class="word">\
-			<div class="tag primary-tag" onClick="make_edit_word_box(this)">\
+			<a href="#" class="tag primary-tag" onClick="make_edit_word_box(this); return false;">\
 				<span class="word-word">${word}</span>\
 				<input type="hidden" name="word" value="${word}">\
 				<input type="hidden" name="meaning" value="${meaning}">\
 				<input type="hidden" name="origin" value="${origin}">\
 				<input type="hidden" name="wordid" value="${wordid}">\
-			</div>\
+			</a>\
 		</li>', form).hide().appendTo('ul#words-wrapper').fadeIn();
 }
 

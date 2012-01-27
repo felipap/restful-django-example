@@ -76,8 +76,6 @@ footer a, footer a:link, footer a:active { color: #457DC2; }
 footer a:hover { color: #74A5E1;}
 
 
-
-
 #flash-messages-wrapper {
 	position: absolute;
 	top: 5px;
@@ -107,6 +105,11 @@ footer a:hover { color: #74A5E1;}
 ul.tags-wrapper { display: table; }
 ul.tags-wrapper li { list-style-type: none; margin-left: px; }
 ul.tags-wrapper .tag { margin: 5px 0; }
+
+.wrapper {
+	display: inline-block;
+	margin: 5px;
+}
 
 .tag {
 	padding: 10px;
@@ -150,9 +153,9 @@ a.tag:hover { color: white; }
 		max-width: 300px;
 		overflow: hidden; }
 
-/****************/
-/*  STYLED BOX  */
-/****************/
+/***********************/
+/* CSS FOR STYLED BOX  */
+/***********************/
 
 .styled-box {
 	position: absolute;
@@ -244,6 +247,9 @@ a.tag:hover { color: white; }
 .styled-box.login-box .edit-field-label { padding: 0 0 5px 0; width: 340px;}
 .styled-box.login-box .edit-field-value { width: 340px; }
 
+/*********************************/
+/*  CSS FOR ORDERBY AND TOOLBOX  */
+/*********************************/
 
 .orderby-box {
 	display: table;
@@ -253,29 +259,30 @@ a.tag:hover { color: white; }
 	border-radius: 1px;
 	font-size: 12px;
 	color: #fff;
-}
-
-.orderby-box div {
 	display: inline-block;
-	padding: 2px 4px;
 }
 
-.orderby-box select {
-	padding: 1px 1px;
-	font-size: 12px;
-	color: white;
-	font: inherit;
-	border-radius: 2px;
-	text-shadow: 0 1px rgba(0, 0, 0, 0.1);
+	.orderby-box div {
+		display: inline-block;
+		padding: 2px 4px; }
 
-	-webkit-transition-duration: 0.2s;
-	-webkit-transition-property: all;
-	border-color: #888;
-	background: #444; }
-	.orderby-box select:hover, .orderby-box select:foscus {
-		text-shadow: 0 1px rgba(0, 0, 0, 0.3);
-		box-shadow: none;
-		outline:none; 
-		border: none;}
+	.orderby-box select {
+		padding: 1px 1px;
+		font-size: 12px;
+		color: white;
+		font: inherit;
+		border-radius: 2px;
+		text-shadow: 0 1px rgba(0, 0, 0, 0.1);
 
-	.orderby-box select option { color: black; }
+		-webkit-transition-duration: 0.2s;
+		-webkit-transition-property: all;
+		border-color: #888;
+		background: #444; }
+		
+		.orderby-box select:hover, .orderby-box select:foscus {
+			text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+			box-shadow: none;
+			outline:none; 
+			border: none;}
+
+		.orderby-box select option { color: black; }

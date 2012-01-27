@@ -26,30 +26,35 @@
 
 	<h2>Lists Panel</h2>
 
-	<!-- ORDERBY -->
-	<div class="orderby-box">
-		<div><b>order by:</b>
-		<select onCshange="location.replace('?order_by='+$(this).val())">
-			<option value="created">created (oldest to newest)</option>
-			<option value="-created">created (newest to oldest)</option>
-			<option value="modified">modified (oldest to newest)</option>
-			<option value="-modified">modified (newest to oldest)</option>
-			<option value="listlabel">list label</option>
-			<option value="-listlabel">list label - inversed</option>
-		
-			<script>
-			var options = document.querySelectorAll('.orderby-box select option');
-			for (var i=0; i < options.length; i++)
-				if (options[i].value === '{{ order_by }}') {
-					options[i].selected = true;
-					break;
-				}
-			</script>
-		</select>
+	
+	<div>
+		<!-- ORDERBY -->
+		<div class="orderby-box">
+			<div><b>order by:</b>
+			<select onCshange="location.replace('?order_by='+$(this).val())">
+				<option value="created">created (oldest to newest)</option>
+				<option value="-created">created (newest to oldest)</option>
+				<option value="modified">modified (oldest to newest)</option>
+				<option value="-modified">modified (newest to oldest)</option>
+				<option value="listlabel">list label</option>
+				<option value="-listlabel">list label - inversed</option>
+			
+				<script>
+				var options = document.querySelectorAll('.orderby-box select option');
+				for (var i=0; i < options.length; i++)
+					if (options[i].value === '{{ order_by }}') {
+						options[i].selected = true;
+						break;
+					}
+				</script>
+			</select>
+			</div>
+			<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
 		</div>
-		<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
+		<!-- /ORDERBY -->
+		<button class="styled-button blue" onClick="make_add_list_box()">Add List</button>
 	</div>
-	<!-- /ORDERBY -->
+	
 
 
 	<ul id="lists-wrapper" class="tags-wrapper">
@@ -79,10 +84,6 @@
 	</ul>
 
 
-
-
-	<button class="styled-button blue" onClick="make_add_list_box()">Add List</button>
-
 	<footer>
 		<a href="/account">account panel</a> | 
 		<a href="/about">about this app</a> | 
@@ -93,7 +94,6 @@
 
 <!-- ####SCRIPT#### -->
 <script type="text/javascript">
-
 
 // $('.tag, .button, .styled-button').addClass('unselectable'); // do it in the html
 

@@ -22,6 +22,10 @@ from app.dbhelper import _get_user, _in_user_database, _get_list, _in_list_datab
 # consertar ordem dos inputs quando aperta o TAB enquanto editando a palavra ou o nome da lista
 # implementar salvar pelo comando Ctrl+S no browser
 # mudar nome do elemento '.list' em listspanel.html
+# add search to words
+# organize a tool box
+# show 'search this word here' when meaning is empty
+# change organization of tags to occupy whole page?
 
 
 
@@ -71,7 +75,7 @@ def signin(request):
 	
 	sign_form = UserForm(request.POST) 
 	if not sign_form.is_valid():
-		return JsonObject(success=False, errors=sum(sign_form.errors.values(),[]))
+		return JsonObject(success=False, errors=sum	(sign_form.errors.values(),[]))
 
 	first_name = request.POST['first_name']
 	email = request.POST['email']
