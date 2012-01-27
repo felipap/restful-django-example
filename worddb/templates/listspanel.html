@@ -55,13 +55,13 @@
 	<ul id="lists-wrapper" class="tags-wrapper">
 	{% for list in lists %}
 		<li class="list">
-			<a href="#" class="tag primary-tag unselectable" onClick="goto_list('{{ list.label }}')">
+			<a href="/lists/{{ list.label }}" class="tag primary-tag unselectable">
 				<span class="list-label">{{ list.label }}</span>
 					<input type="hidden" name="label" value="{{ list.label }}">
 					<input type="hidden" name="description" value="{{ list.description }}">
 					<input type="hidden" name="listid" value="{{ list.id }}">
 			</a>
-			<a href="#" class="tag auxiliar-tag unselectable" onClick="make_edit_list_box($(this).parent('li'));">edit</a>
+			<button class="tag auxiliar-tag unselectable" onClick="make_edit_list_box($(this).parent('li'));">edit</button>
 		</li>
 		<!--
 		<div class="secondary-info">
