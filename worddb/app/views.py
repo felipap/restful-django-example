@@ -19,6 +19,9 @@ from app.dbhelper import _get_user, _in_user_database, _get_list, _in_list_datab
 
 # TO DOs:
 # implement log system
+# consertar ordem dos inputs quando aperta o TAB enquanto editando a palavra ou o nome da lista
+# implementar salvar pelo comando Ctrl+S no browser
+# mudar nome do elemento '.list' em listspanel.html
 
 
 
@@ -118,10 +121,6 @@ def logout(request):
 @render_to('listspanel.html')
 def listspanel(request):
 
-	# if '?welcome=0', user has just signed in
-	# elif '?welcome=1' used has just logged in
-	# these arguments are passed by 'signin' and 'login' views, respectively
-
 	try:
 		user = User.objects.get(id=request.session['userid'])
 	except User.DoesNotExist: # user not in db anymore (any db resets? :)
@@ -129,25 +128,30 @@ def listspanel(request):
 			(request.session['userid'], request.META['REMOTE_ADDR']))
 		return redirect('/logout')
 	
+	# if '?welcome=0', user has just signed in
+	# elif '?welcome=1' used has just logged in
+	# these arguments are passed by 'signin' and 'login' views, respectively
+	w_value = request.GET.get('welcome')
 	messages = []
-	if request.GET.has_key('welcome'): # user is back
-		if request.GET['welcome'] == '0':
-			messages = ['welcome, %s!' % user.first_name,]
-		elif request.GET['welcome'] == '1':
-			messages = ['welcome back, %s!' % user.first_name,]
+	if w_value:
+		messages = ['welcome %s, %s!' % ('back' if w_value == '1' else '', user.first_name),]
+	
+	fields = {'created': 'date_created', 'modified': 'date_modified', 'listlabel': 'label'}
 
-	order = 'date_created'
 	if 'order_by' in request.GET:
 		value = request.GET['order_by']
-		if value == 'created': order = 'date_created'
-		elif value == 'modified': order = 'date_modified'
-		elif value == 'listlabel': order = 'label'
-		if 'reversed' in request.GET and request.GET['reversed'] == '1':
-			order = '-'+order
+		if value in fields:
+			order = fields[value]
+		elif value[0] == '-' and value[1:] in fields:
+			order = '-'+fields[value[1:]]
+		# fail silently
+	else:
+		order = None
+		value = None
 	
-	lists = user.list_set.all() if not order else user.list_set.order_by(order)
-	return {'lists': lists, 'flash_messages': messages}
-
+	lists = user.list_set.order_by('date_created') if not order else user.list_set.order_by(order)
+	return {'lists': lists, 'flash_messages': messages, 'order_by': value}
+ 
 
 @require_logged
 @render_to('listpage.html')
@@ -164,17 +168,22 @@ def listpage(request, listname):
 	except List.DoesNotExist:
 		raise Http404('list not found')
 	
-	order = 'date_created'
+	fields = {'created': 'date_created', 'modified': 'date_modified', 'word': 'word'}
+
 	if 'order_by' in request.GET:
 		value = request.GET['order_by']
-		if value == 'created': order = 'date_created'
-		elif value == 'modified': order = 'date_modified'
-		elif value == 'word': order = 'word'
-		if 'reversed' in request.GET and request.GET['reversed'] == '1':
-			order = '-'+order
+		if value in fields:
+			order = fields[value]
+		elif value[0] == '-' and value[1:] in fields:
+			order = '-'+fields[value[1:]]
+		# fail silently
+	else:
+		order = None
+		value = None
+
 	
-	words = l.word_set.all() if not order else l.word_set.order_by(order)
-	return {'words': words, 'parentlist': l}
+	words = l.word_set.order_by('date_created') if not order else l.word_set.order_by(order)
+	return {'words': words, 'parentlist': l, 'order_by': value}
 
 ###############################################################
 
@@ -371,4 +380,4 @@ def remove_word(request):
 		return JsonObject(success=False, text='word doens\'t exist.')
 
 	w.delete()
-	return JsonObject(success=True, text='word removed from %s ' % l.label)
+	return JsonObject(success=True, text='word \'%s\' removed from %s ' % (w.word, l.label))

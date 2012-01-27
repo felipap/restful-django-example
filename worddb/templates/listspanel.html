@@ -23,44 +23,45 @@
 <!-- BODY -->
 
 <body>
-	
-	<h2>Lists Panel</h2>
-	
-	<script>
-	function goto_orderby() {
-		var url = '?order_by='+$('#select_orderby').val();
-		if ($("#orderby_reversed")[0].checked)
-			url = url+'&reversed=1';
-		location.replace(url);
-	}
-	</script>
 
+	<h2>Lists Panel</h2>
+
+	<!-- ORDERBY -->
 	<div class="orderby-box">
-		<div class="orderby">order by:
-		<select id="select_orderby">
-			<option value="created">created</option>
-			<option value="modified">modified</option>
+		<div><b>order by:</b>
+		<select onCshange="location.replace('?order_by='+$(this).val())">
+			<option value="created">created (oldest to newest)</option>
+			<option value="-created">created (newest to oldest)</option>
+			<option value="modified">modified (oldest to newest)</option>
+			<option value="-modified">modified (newest to oldest)</option>
 			<option value="listlabel">list label</option>
+			<option value="-listlabel">list label - inversed</option>
+		
+			<script>
+			var options = document.querySelectorAll('.orderby-box select option');
+			for (var i=0; i < options.length; i++)
+				if (options[i].value === '{{ order_by }}') {
+					options[i].selected = true;
+					break;
+				}
+			</script>
 		</select>
 		</div>
-		<div class="reversed">reversed
-			<INPUT id="orderby_reversed" TYPE="checkbox" NAME="" VALUE="reversed" />
-		</div>
-		<button class="styled-button red" onClick="goto_orderby()">Order</button>
+		<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
 	</div>
+	<!-- /ORDERBY -->
 
 
-
-	<ul id="lists-wrapper" class="tags-wrapper" style="margin: 5px;">
+	<ul id="lists-wrapper" class="tags-wrapper">
 	{% for list in lists %}
 		<li class="list">
-			<div class="tag" style="display: inline-block" onClick="goto_list('{{ list.label }}')">
+			<a href="#" class="tag primary-tag unselectable" onClick="goto_list('{{ list.label }}')">
 				<span class="list-label">{{ list.label }}</span>
-				<input type="hidden" name="label" value="{{ list.label }}">
-				<input type="hidden" name="description" value="{{ list.description }}">
-				<input type="hidden" name="listid" value="{{ list.id }}">
-			</div>
-			<div class="auxiliar-tag edit-list" onClick="make_edit_list_box($(this).parent('.list'));">edit</div>
+					<input type="hidden" name="label" value="{{ list.label }}">
+					<input type="hidden" name="description" value="{{ list.description }}">
+					<input type="hidden" name="listid" value="{{ list.id }}">
+			</a>
+			<a href="#" class="tag auxiliar-tag unselectable" onClick="make_edit_list_box($(this).parent('li'));">edit</a>
 		</li>
 		<!--
 		<div class="secondary-info">
@@ -111,13 +112,13 @@ _csrf_token = '{{csrf_token}}';
 function add_list_tag(form) { // ads a list tag to the lists wrapper
 	$("ul.tags-wrapper #no-tags-message").remove();
 	$.tmpl('<li class="list">\
-			<div class="tag" style="display: inline-block" onClick="goto_list(\'${label}\')">\
+			<div class="tag primary-tag" style="display: inline-block" onClick="goto_list(\'${label}\')">\
 				<span class="list-label unselectable">${label}</span>\
 				<input type="hidden" name="label" value="${label}">\
 				<input type="hidden" name="description" value="${description}">\
 				<input type="hidden" name="listid" value="${listid}">\
 			</div>\
-			<div class="auxiliar-tag edit-list unselectable" onClick="make_edit_list_box($(this).parent(\'.list\'));">edit</div>\
+			<div class="tag auxiliar-tag unselectable" onClick="make_edit_list_box($(this).parent(\'li\'));">edit</div>\
 		</li>', form).hide().appendTo('ul#lists-wrapper').fadeIn();
 }
 

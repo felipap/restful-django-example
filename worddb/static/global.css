@@ -8,6 +8,7 @@
 * grayed blue: #456D82 (links)
 * strong blue: #086FA1 (words/lists tags)
 * blue green: #009999 (field outline)
+* 'edit' list green: #00BB3F;
 */
 
 /***************************/
@@ -108,33 +109,30 @@ ul.tags-wrapper li { list-style-type: none; margin-left: px; }
 ul.tags-wrapper .tag { margin: 5px 0; }
 
 .tag {
-	width: 210px;
 	padding: 10px;
-
-	background: #086FA1;
+	border: 2px solid transparent;
 	color: white;
-
-	display: block;
+	box-shadow: 0 0px 5px #aaa;
+	display: inline-block;
 	cursor: pointer; }
-.tag:hover { background: #033E6B; }
-.tag:active { position: relative; top: 1px; }
+.tag:hover { color: white; }
+.tag:active { position: relative; top: 1px;
+	 text-shadow: #222 0px 1px 3px;
+	 cursor: pointer; }
+.tag:focus { border: 2px solid white; }
 
+	.tag.primary-tag {
+		background: #086FA1;
+		width: 210px; }
+	.tag.primary-tag:hover { background: #033E6B; }
 
-.auxiliar-tag {
-	width: 200px;
-	padding: 10px;
-	margin-left: -3px;
-	
-	background: #00BB3F;
-	color: white;
+	.tag.auxiliar-tag {
+		padding: 10px;
+		background: #00BB3F;
+		display: inline-block; }
+	.tag.auxiliar-tag:hover { background: #007A29; }
 
-	display: inline;
-	cursor: pointer;
-}
-.auxiliar-tag:hover { background: #007A29; }
-.auxiliar-tag:active { position: relative; top: 1px; }
-
-/* CHANGE THIS CLASS NAME */
+/* CHANGE THIS CLASS LABEL!!! */
 .secondary-info {
 	border: 1px solid #aaa;
 	background: #ccc;
@@ -142,15 +140,14 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 	margin-bottom: 10px;
 	color: #222;
 }
-.secondary-info .title {
-	font-weight: bold;
-	font-size: 15px;
-}
-.secondary-info .content {
-	margin-left: 10px;
-	max-width: 300px;
-	overflow: hidden;
-}
+	.secondary-info .title {
+		font-weight: bold;
+		font-size: 15px; }
+
+	.secondary-info .content {
+		margin-left: 10px;
+		max-width: 300px;
+		overflow: hidden; }
 
 /****************/
 /*  STYLED BOX  */
@@ -167,6 +164,10 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 	top: 15%; left: 50%;
 	margin-left: -300px;
 }
+
+.styled-box .close-button, .styled-box .edit-field {
+	-webkit-transition-duration: 0.1s;
+	-webkit-transition-property: all; }
 
 	.styled-box .box-title {
 		color: white;
@@ -187,13 +188,13 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 
 
 /* css for EDIT */
-
+	
 	.styled-box .edit-field {
 		height: 100%;
 		margin: 5px 0;
 		padding: 5px;
 		display: table; }
-	.styled-box .edit-field:hover { background: rgba(0, 0, 0, 0.3) }
+	.styled-box .edit-field:hover { background: rgba(0, 0, 0, 0.5) }
 
 		.styled-box	.edit-field-label {
 			width: 100px;
@@ -246,32 +247,34 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 .orderby-box {
 	display: table;
 	background: #444;
-	padding: 2px;
+	padding: 1px 3px;
 	border: 1px solid #444;
-	border-radius: 2px;
+	border-radius: 1px;
+	font-size: 12px;
+	color: #fff;
 }
-.orderby-box div {
-	color: #eee;
-	display: inline-block;
-	padding: 4px 7px;
-	
-	border-right: 1px solid white;
 
-	font-weight: bold;
-	margin-right: 7px;
+.orderby-box div {
+	display: inline-block;
+	padding: 2px 4px;
 }
+
 .orderby-box select {
-	padding: 2px 3px;
+	padding: 1px 1px;
+	font-size: 12px;
 	color: white;
+	font: inherit;
 	border-radius: 2px;
 	text-shadow: 0 1px rgba(0, 0, 0, 0.1);
 
 	-webkit-transition-duration: 0.2s;
 	-webkit-transition-property: all;
-	border-color: rgb(105, 105, 105);
-	background-image: -webkit-linear-gradient(top, rgb(150, 150, 150), rgb(130, 130, 130)); }
-
-	.orderby-box select:hover, .orderby-box select:focus {
-		text-shadow: 0 1px rgba(0, 0, 0, 0.3); }
+	border-color: #888;
+	background: #444; }
+	.orderby-box select:hover, .orderby-box select:foscus {
+		text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+		box-shadow: none;
+		outline:none; 
+		border: none;}
 
 	.orderby-box select option { color: black; }

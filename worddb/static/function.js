@@ -28,10 +28,9 @@ function show_flash_error(message, customcss, delay) {
 }
 
 
+function goto_list(listname) { window.location.replace('/lists/'+encodeURI(listname)); }
 
-function goto_list(listname) {
-	window.location.replace('/lists/'+encodeURI(listname))
-}
+function open_link(link) { window.open(link); return false; }
 
 function show_blackout() {
 	$('#blackout').stop().show();
@@ -76,7 +75,9 @@ function show_info_box(textarea) {
 		if (!word)
 			$(box).fadeOut( function() { $(box).remove() });
 
-	$(box).html('find meaning of \''+word+'\' <a target="_blank" href="http://www.wordreference.com/enpt/'+word+'">here</a>.');
+	$(box).html($.tmpl('find meaning of \'${word}\' <a href="javascript:void(0);" \
+						onClick="open_link(\'http://www.wordreference.com/enpt/${word}\')">here</a> \
+						(wordreference.com).', {'word': word}));
 }
 
 // Add-Word Box functions
@@ -84,8 +85,8 @@ function make_add_word_box(word) { // creates the Add-Word box
 	show_blackout();
 	
 	html = $(add_word_box_html);
-	html.find(".edit-field[data-field=word] textarea").bind('change keyup paste',
-		function () { show_info_box(this) });
+	html.find(".edit-field[data-field=word] textarea").bind('keyup paste',
+		function () { show_info_box(this); });
 
 	html.hide().appendTo('body').fadeIn();
 	$('#edit-wrapper textarea').autoResize({'extraSpace': 10});
@@ -318,7 +319,6 @@ function update_list_db(csrf_token) { // updates the list in the database based 
 		},
 		error: function (obj, status) {
 			// wtf?
-			alert(12);
 		} });
 }
 
