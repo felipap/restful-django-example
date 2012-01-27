@@ -115,7 +115,8 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 	box-shadow: 0 0px 5px #aaa;
 	display: inline-block;
 	cursor: pointer; }
-.tag:hover { color: white; }
+a.tag { color: white; }
+a.tag:hover { color: white; }
 .tag:active { position: relative; top: 1px;
 	 text-shadow: #222 0px 1px 3px;
 	 cursor: pointer; }
