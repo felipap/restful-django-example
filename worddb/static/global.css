@@ -108,7 +108,7 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 
 .wrapper {
 	display: inline-block;
-	margin: 5px;
+	margin: 0 10px 0 0;
 }
 
 .tag {

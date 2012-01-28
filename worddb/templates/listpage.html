@@ -56,7 +56,7 @@
 			<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
 		</div>
 		<!-- /ORDERBY -->
-		<button class="styled-button blue" onClick="make_add_list_box()">Add List</button>
+		<button class="green styled-button" onClick="make_add_word_box()">Add Word</button>
 	</div>
 
 
@@ -78,7 +78,6 @@
 	{% endfor %}
 	</ul>
 
-	<button class="green styled-button" onClick="make_add_word_box()">Add Word</button>
 
 	<footer>
 		<a href="/account">account panel</a> | 
@@ -95,7 +94,7 @@
 
 function add_word_tag(form) { // adds a word tag to the words list in the html
 	$("ul.tags-wrapper #no-tags-message").remove();
-	$.tmpl('<li class="word">\
+	$.tmpl('<li class="word wrapper">\
 			<a href="#" class="tag primary-tag" onClick="make_edit_word_box(this); return false;">\
 				<span class="word-word">${word}</span>\
 				<input type="hidden" name="word" value="${word}">\
