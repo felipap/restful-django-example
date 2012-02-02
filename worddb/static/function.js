@@ -63,11 +63,12 @@ function show_no_tags_message(message) {
 
 var box_field_info_html = '<div class="field-info"></div>';
 
-function show_info_box(textarea) {
+function show_meaning_info_box(textarea) {
+	t = textarea;
 	field = $(textarea).parent();
 	word = $(textarea).val();
 	box = field.find('.field-info')[0];
-		
+	
 	if (!box) {
 		if (!word) return;
 		box = $(box_field_info_html).hide().appendTo(field).fadeIn();
@@ -84,9 +85,9 @@ function show_info_box(textarea) {
 function make_add_word_box(word) { // creates the Add-Word box
 	show_blackout();
 	
-	html = $(add_word_box_html);
+	var html = $(add_word_box_html);
 	html.find(".edit-field[data-field=word] textarea").bind('keyup paste',
-		function () { show_info_box(this); });
+		function () { show_meaning_info_box(this); });
 
 	html.hide().appendTo('body').fadeIn();
 	$('#edit-wrapper textarea').autoResize({'extraSpace': 10});
@@ -106,6 +107,10 @@ function make_edit_word_box(word) { // creates the Edit-Word Box
 		var value = $(word).find('input[name='+item+']').val();
 		$("#edit-wrapper [data-field="+item+"] .edit-field-value").val(value);
 	});
+
+	if ($("#edit-wrapper [data-field=meaning] .edit-field-value").val() === '') {
+		show_meaning_info_box($("#edit-wrapper [data-field=word] textarea")[0]);
+	}
 
 	var wordid = $(word).find('input[name=wordid]').val();
 	$("#edit-wrapper input[name=wordid]").val(wordid);

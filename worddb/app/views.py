@@ -9,17 +9,14 @@ from django import forms
 
 from app.models import User, List, Word, get_hash
 from app.decorators import require_logged, require_not_logged, require_args, require_method, render_to
-from app.dbhelper import _get_user, _in_user_database, _get_list, _in_list_database, _get_word, _in_word_database
 
 # import re
 # import logging
-# import pdb # import python debugger?
-
+import pdb # import python debugger
 
 
 # TO DOs:
 # implement log system
-# consertar ordem dos inputs quando aperta o TAB enquanto editando a palavra ou o nome da lista
 # implementar salvar pelo comando Ctrl+S no browser
 # mudar nome do elemento '.list' em listspanel.html
 # add search to words
@@ -75,13 +72,13 @@ def signin(request):
 	
 	sign_form = UserForm(request.POST) 
 	if not sign_form.is_valid():
-		return JsonObject(success=False, errors=sum	(sign_form.errors.values(),[]))
+		return JsonObject(success=False, errors=sum(sign_form.errors.values(),[]))
 
 	first_name = request.POST['first_name']
 	email = request.POST['email']
 	password = request.POST['password']
 
-	if _in_user_database(email=email):
+	if User.objects.in_user_database(email=email):
 		return JsonObject(success=False, errors=["this email is already registered. haven't you signed up before?"])
 	
 	u = User.objects.create(first_name=first_name, email=email, password=get_hash(password))
@@ -104,7 +101,7 @@ def login(request):
 	email = request.POST['email']
 	password = request.POST['password']
 
-	u = _get_user(email=email, password=password)	
+	u = User.objects.get_user(email=email, password=password)	
 	if not u: # if user not found
 		return JsonObject(success=False, errors=['invalid email/password combination'])
 	
@@ -217,7 +214,7 @@ class ListForm(forms.Form):
 @require_args('label', 'description')
 def add_list(request):
 
-	user = _get_user(userid=request.session['userid'])
+	user = User.objects.get(id=request.session['userid'])
 	
 	list_form = ListForm(request.POST)
 	if not list_form.is_valid():
@@ -239,8 +236,8 @@ def add_list(request):
 def change_list(request):
 	# passing listid is obligatory, but description and label are optional
 
-	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=request.POST['listid'])
+	user = User.objects.get(id=request.session['userid'])
+	l = List.objects.get_list(user, id=request.POST['listid'])
 	if not l:
 		return JsonObject(success=False, errors=['list not found',])
 
@@ -264,8 +261,8 @@ def change_list(request):
 @require_args('listid')
 def remove_list(request):
 	
-	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=request.POST['listid'])
+	user = User.objects.get(id=request.session['userid'])
+	l = List.objects.get_list(user, id=request.POST['listid'])
 
 	if not l:
 		return JsonObject(success=False, errors=['list not found',])
@@ -293,8 +290,8 @@ class WordForm(forms.Form):
 @require_args('listid', 'word', 'meaning', 'origin')
 def add_word(request):
 
-	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=request.POST['listid'])
+	user = User.objects.get(id=request.session['userid'])
+	l = List.objects.get_list(user, id=request.POST['listid'])
 	if not l:
 		return JsonObject(success=False, text='list not found')
 	
@@ -318,8 +315,8 @@ def add_word(request):
 def change_list(request):
 	# passing listid is obligatory, but description and label are optional
 
-	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=request.POST['listid'])
+	user = User.objects.get(id=request.session['userid'])
+	l = List.objects.get_list(user, id=request.POST['listid'])
 	if not l:
 		return JsonObject(success=False, errors=['list not found',])
 
@@ -344,11 +341,11 @@ def change_list(request):
 def change_word(request):
 	# passing listid and wordid is obligatory, but description and label are optional
 	
-	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=request.POST['listid'])
+	user = User.objects.get(id=request.session['userid'])
+	l = List.objects.get_list(user, id=request.POST['listid'])
 	if not l:
 		return JsonObject(success=False, errors=['list not found',])
-	w = _get_word(list=l, wordid=request.POST['wordid'])
+	w = Word.objects.get_word(l, id=request.POST['wordid'])
 	if not w:
 		return JsonObject(success=False, text='word doesn\'t exist')
 
@@ -372,13 +369,13 @@ def change_word(request):
 @require_args('wordid', 'listid')
 def remove_word(request):
 
-	user = _get_user(userid=request.session['userid'])
-	l = _get_list(user=user, listid=request.POST['listid'])
+	user = User.objects.get(id=request.session['userid'])
+	l = List.objects.get_list(user, id=request.POST['listid'])
 
 	if not l:
 		return JsonObject(success=False, text='list not found')
 
-	w = _get_word(list=l, wordid=request.POST['wordid'])
+	w = Word.objects.get_word(l, id=request.POST['wordid'])
 	
 	if not w:
 		return JsonObject(success=False, text='word doens\'t exist.')

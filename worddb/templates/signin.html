@@ -88,7 +88,7 @@ function signin() {
 				for (var i=0; i<data['errors'].length; i++)
 					show_flash_message(data['errors'][i], {'background': "#F60018"});				
 		}, 
-		errors: function (obj, status) {
+		error: function (obj, status) {
 			alert(12); // wtf??
 		} });
 }
