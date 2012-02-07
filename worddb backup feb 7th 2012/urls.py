@@ -27,9 +27,18 @@ urlpatterns += patterns('app.views',
     url(r'^lists/$', 'listspanel'), # lists panel for the user (template: listspanel.html)
     url(r'^lists/(?P<listname>[\w\d,. -]+)$(?!^lists/api$)', 'listpage'), # list page (template: listpage.html)
 
-    # action in ('add', 'change', 'removes')
+    ## testing new format
     url(r'^api/lists/(?P<action>\w+)$', 'api_lists_redirect'),
     url(r'^api/words/(?P<action>\w+)$', 'api_words_redirect'),
+    #################################
+
+    url(r'^lists/api/add_list$', 'add_list'),
+    url(r'^lists/api/change_list$', 'change_list'),
+    url(r'^lists/api/remove_list$', 'remove_list'),
+
+    url(r'^lists/api/add_word$', 'add_word'),
+    url(r'^lists/api/change_word$', 'change_word'),
+    url(r'^lists/api/remove_word$', 'remove_word'),
 )
 
 # API Calls

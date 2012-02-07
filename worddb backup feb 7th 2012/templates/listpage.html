@@ -91,7 +91,7 @@
 <script type="text/javascript">
 
 {% for msg in flash_messages %}
-	show_flash_message('{{ msg }}', {'background': '#0FB05E'}, 8000+{{ forloop.counter }}*1000);
+	show_flash_message('{{ msg }}', {}, 8000+{{ forloop.counter }}*1000);
 {% endfor %}
 
 {% for error in flash_errors %}

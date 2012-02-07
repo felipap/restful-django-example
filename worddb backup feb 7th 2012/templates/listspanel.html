@@ -100,7 +100,7 @@
 _csrf_token = '{{csrf_token}}';
 
 {% for msg in flash_messages %}
-	show_flash_message('{{ msg }}', {'border': '1px solid #0FB05E'}, 8000+{{ forloop.counter }}*1000);
+	show_flash_message('{{ msg }}', {}, 8000+{{ forloop.counter }}*1000);
 {% endfor %}
 
 {% for error in flash_errors %}
