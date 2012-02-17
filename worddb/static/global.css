@@ -110,12 +110,14 @@ ul.tags-wrapper .tag { margin: 5px 0; }
 
 
 .attached-info {
-	background: #b8dFFF;
+	background: #e8eFFF;
 	margin: -5px 0 5px 0;
 	border: 1px solid #086FA1;
 	padding: 8px;
 	color: black;
 	font-size: 13px;
+	width: 218px;
+	display: block;
 }
 
 .tag {
@@ -152,8 +154,7 @@ a.tag.active { color: white; }
 
 
 	.tag.primary-tag {
-		background: #086FA1;
-		width: 210px; }
+		background: #086FA1; }
 	.tag.primary-tag:hover { background: #033E6B; }
 
 

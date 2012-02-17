@@ -88,6 +88,13 @@ var lists = [
 {% endfor %}
 ];
 
+var list_tag_html = '<li class="list" data-label="${label}" data-description="${description}" data-listid="${listid}">\
+			<div tabindex="0" onClick="goto_list(this.parentElement.dataset[\'label\'])" class="tag primary-tag">\
+				<span class="list-label">${label}</span>\
+				<button class="edit-button" onClick="make_edit_list_box(this.parentElement.parentElement); event.stopPropagation();">edit</button>\
+			</div>\
+		</li>';
+
 (function() {
 	if (!lists[0]) show_no_tags_message("» no lists found");
 	else
@@ -99,22 +106,15 @@ var lists = [
 // 
 
 function add_list_tag(form) {
-	$("ul.tags-wrapper #no-tags-message").remove();
-	$.tmpl('<li class="list" data-label="${label}" data-description="${description}" data-listid="${listid}">\
-			<div tabindex="0" onClick="goto_list(this.parentElement.dataset[\'label\'])" class="tag primary-tag">\
-				<span class="list-label">${label}</span>\
-				<button class="edit-button" onClick="make_edit_list_box(this.parentElement.parentElement); event.stopPropagation();">edit</button>\
-			</div>\
-		</li>', form).appendTo('ul.lists-wrapper');
+	if (document.body.querySelector('ul.tags-wrapper #no-tags-message'))
+		$("ul.tags-wrapper #no-tags-message").remove();
+	$.tmpl(list_tag_html, form).appendTo('ul.lists-wrapper');
 }
 
 
 function update_list_tag(form) {
 	var p = document.body.querySelector("li.list[data-listid='"+form['listid']+"']");
-	$(['label', 'description']).each(function (index, item) {
-		p.dataset[item] = form[item];
-	});
-	p.querySelector(".list-label").innerHTML = form['label'];
+	$(p).html($.tmpl(list_tag_html, form));
 }
 
 

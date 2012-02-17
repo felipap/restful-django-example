@@ -95,6 +95,15 @@ var words = [
 {% endfor %}
 ];
 
+var word_tag_html = '<li class="word wrapper" data-word="${word}" data-meaning="${meaning}" data-origin="${origin}" data-wordid="${wordid}">\
+	<a href="#" class="tag primary-tag" onClick="make_edit_word_box(this.parentElement); return false;">\
+		<span class="word-word">${word}</span>\
+	</a>\
+	<div class="attached-info">\
+		<b>meaning</b>: \'${meaning}\'\
+		</div>\
+	</li>';
+
 (function() {
 	if (!words[0]) show_no_tags_message("» no words found");
 	else
@@ -104,26 +113,17 @@ var words = [
 
 //
 
+
 function add_word_tag(form) { // adds a word tag to the words list in the html
-	f = form;
-	$("ul.tags-wrapper #no-tags-message").remove();
-	$.tmpl('<li class="word wrapper" data-word="${word}" data-meaning="${meaning}" data-origin="${origin}" data-wordid="${wordid}">\
-			<a href="#" class="tag primary-tag" onClick="make_edit_word_box(this.parentElement); return false;">\
-				<span class="word-word">${word}</span>\
-			</a>\
-			<div class="attached-info">\
-			<b>meaning</b>: \'${meaning}\'\
-			</div>\
-		</li>', form).appendTo('ul#words-wrapper');
+	if (document.body.querySelector('ul.tags-wrapper #no-tags-message'))
+		$("ul.tags-wrapper #no-tags-message").remove();
+	$.tmpl(word_tag_html, form).appendTo('ul#words-wrapper');
 }
 
 
 function update_word_tag(form) {
 	var p = document.body.querySelector('li.word[data-wordid="'+form['wordid']+'"]');
-	$(['word', 'meaning', 'origin']).each(function (index, item) {
-		p.dataset[item] = form[item];
-	});
-	p.querySelector(".word-word").innerHTML = form['word'];
+	$(p).html($.tmpl(word_tag_html, form));
 }
 
 
