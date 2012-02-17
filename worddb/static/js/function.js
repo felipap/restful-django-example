@@ -73,12 +73,15 @@ function show_no_tags_message(message) {
 
 var box_field_info_html = '<div class="field-info"></div>';
 
-function show_meaning_info_box(textarea) {
-	t = textarea;
-	field = $(textarea).parent();
-	word = $(textarea).val();
-	box = field.find('.field-info')[0];
+function show_meaning_info_box(textarea, html) {
 	
+	var field = $(textarea).parent(),
+		word = $(textarea).val(),
+		box = field.find('.field-info')[0],
+		html = html || 'find meaning of \'${word}\' <a href="javascript:void(0);" \
+						onClick="open_link(\'http://www.wordreference.com/enpt/${word}\')">here</a> \
+						(wordreference.com).';
+
 	if (!box) {
 		if (!word) return;
 		box = $(box_field_info_html).hide().appendTo(field).fadeIn();
@@ -86,65 +89,59 @@ function show_meaning_info_box(textarea) {
 		if (!word)
 			$(box).fadeOut( function() { $(box).remove() });
 
-	$(box).html($.tmpl('find meaning of \'${word}\' <a href="javascript:void(0);" \
-						onClick="open_link(\'http://www.wordreference.com/enpt/${word}\')">here</a> \
-						(wordreference.com).', {'word': word}));
+	$(box).html($.tmpl(html, {'word': word}));
 }
 
 // Add-Word Box functions
-function make_add_word_box(word) { // creates the Add-Word box
-	show_blackout();
-	
+function make_add_word_box(word) { // creates the Add-Word box	
 	var html = $(add_word_box_html);
 	html.find(".edit-field[data-field=word] textarea").bind('keyup paste',
 		function () { show_meaning_info_box(this); });
 
+	show_blackout();
 	html.hide().appendTo('body').fadeIn();
 	$('#edit-wrapper textarea').autoResize({'extraSpace': 10});
 	$("#edit-wrapper [data-field=word] .edit-field-value").focus();
 }
 
 function remove_add_word_box() { // removes the Add-Word box
-	remove_edit_word_box(); }
+	remove_editwrapper()
+}
 
 
 // Edit-Word Box functions
 function make_edit_word_box(word) { // creates the Edit-Word Box
 	show_blackout();
-	$(edit_word_box_html).hide().appendTo('body').fadeIn();
+	w = word;
+	$.tmpl(edit_word_box_html, word.dataset).hide().appendTo('body').fadeIn();
 
-	$(['word', 'meaning', 'origin']).each(function (index, item) {
-		var value = $(word).find('input[name='+item+']').val();
-		$("#edit-wrapper [data-field="+item+"] .edit-field-value").val(value);
-	});
-
-	if ($("#edit-wrapper [data-field=meaning] .edit-field-value").val() === '') {
+	if (word.dataset['meaning'] === '') // if meaning not set, show info_meaning box
 		show_meaning_info_box($("#edit-wrapper [data-field=word] textarea")[0]);
-	}
-
-	var wordid = $(word).find('input[name=wordid]').val();
-	$("#edit-wrapper input[name=wordid]").val(wordid);
 
 	$('#edit-wrapper textarea').autoResize({'extraSpace': 10});
 	$("#edit-wrapper [data-field=word] .edit-field-value").focus();
 }
 
 function remove_edit_word_box() { // removes the Edit-Word box
+	remove_editwrapper()
+}
+
+function remove_editwrapper() {
 	$("#edit-wrapper").fadeOut('fast', function() {
 		$("#edit-wrapper").remove()
 		hide_blackout();
 	});
 }
 
-
 /****************************/
 /* AJAX DATABASE ACCESS API */
 /****************************/
 
-function add_word_db(parentid, csrf_token) { // adds a word to the database based on Add-Word Box
+function add_word_db(edit_wrapper, parentid, csrf_token) { // adds a word to the database based on Add-Word Box
+	
 	var form = {};
 	$(['word', 'meaning', 'origin']).each(function (index, item) {
-		form[item] = $("#edit-wrapper [data-field="+item+"] .edit-field-value").val();
+		form[item] = edit_wrapper.querySelector("[data-field="+item+"] .edit-field-value").value;
 	});
 	form['listid'] = parentid;
 	form['csrfmiddlewaretoken'] = csrf_token;
@@ -162,7 +159,7 @@ function add_word_db(parentid, csrf_token) { // adds a word to the database base
 				remove_add_word_box();
 			} else {
 				for (var i=0; i<data['errors'].length; i++)
-					show_flash_error(data['errors'][i], {'background': "/static/images/"});
+					show_flash_error(data['errors'][i], {'background': "#ff7373"});
 			}
 		},
 		error: function (obj, status) {
@@ -170,12 +167,13 @@ function add_word_db(parentid, csrf_token) { // adds a word to the database base
 		} });
 }
 
-function update_word_db(parentid, csrf_token) { // updates the word in the database based on the Edit-Word box
-	var form = {};
+function update_word_db(edit_wrapper, parentid, csrf_token) { // updates the word in the database based on the Edit-Word box
+	
+	form = {};
 	$(['word', 'meaning', 'origin']).each(function (index, item) {
-		form[item] = $("#edit-wrapper [data-field="+item+"] .edit-field-value").val();
+		form[item] = edit_wrapper.querySelector("[data-field="+item+"] .edit-field-value").value;
 	});
-	form['wordid'] = $("#edit-wrapper input[name=wordid]").val();
+	form['wordid'] = edit_wrapper.dataset['wordid'];
 	form['listid'] = parentid;
 	form['csrfmiddlewaretoken'] = csrf_token;
 
@@ -200,9 +198,10 @@ function update_word_db(parentid, csrf_token) { // updates the word in the datab
 		} });
 }
 
-function remove_word_db(parentid, csrf_token) { // removes the word being edited at the Edit-Word box from the database
+function remove_word_db(edit_wrapper, parentid, csrf_token) { // removes the word being edited at the Edit-Word box from the database
+
 	var form = {};
-	form['wordid'] = $("#edit-wrapper input[name=wordid]").val();
+	form['wordid'] = edit_wrapper.dataset['wordid'];
 	form['listid'] = parentid;
 	form['csrfmiddlewaretoken'] = csrf_token;
 
@@ -255,19 +254,12 @@ function remove_add_list_box() {
 // Edit-List Box functions
 function make_edit_list_box(list) {
 	show_blackout();
-	$(edit_word_box_html).hide().appendTo('body').fadeIn();
-
-	$(['label', 'description']).each(function (index, item) {
-		var value = $(list).find('input[name='+item+']').val();
-		$("#edit-wrapper [data-field="+item+"] .edit-field-value").val(value);
-	});
-	
-	var listid = $(list).find('input[name=listid]').val();
-	$("#edit-wrapper input[name=listid]").val(listid);
+	$.tmpl(edit_list_box_html, list.dataset).hide().appendTo('body').fadeIn();
 
 	$("#edit-wrapper textarea").autoResize({'extraSpace':10});
 	$("#edit-wrapper [data-field=label] .edit-field-value").focus();
 }
+
 
 function remove_edit_list_box() {
 	$("#edit-wrapper").fadeOut('fast', function() {
@@ -280,10 +272,11 @@ function remove_edit_list_box() {
 /* AJAX DATABASE ACCESS API */
 /****************************/
 
-function add_list_db(csrf_token) { // adds a list to the database based on Add-List Box
+function add_list_db(wrapper, csrf_token) { // adds a list to the database based on Add-List Box
+	
 	var form = {};
 	$(['label', 'description']).each(function (index, item) {
-		form[item] = $("#edit-wrapper [data-field="+item+"] .edit-field-value").val();
+		form[item] = wrapper.querySelector("[data-field="+item+"] .edit-field-value").value;
 	});
 	form['csrfmiddlewaretoken'] = csrf_token;
 
@@ -300,7 +293,7 @@ function add_list_db(csrf_token) { // adds a list to the database based on Add-L
 				remove_add_list_box();
 			} else {
 				for (var i=0; i<data['errors'].length; i++)
-					show_flash_message(data['errors'][i], {'background': "#F60018"});
+					show_flash_message(data['errors'][i], {'background': "#ff7373", 'border-color': 'red', 'color': 'black'});
 			}
 		},
 		error: function (jqXHR, textStatus, errorThrown) {
@@ -308,14 +301,15 @@ function add_list_db(csrf_token) { // adds a list to the database based on Add-L
 		} });
 }
 
-function update_list_db(csrf_token) { // updates the list in the database based on the Edit-List box
+function update_list_db(edit_wrapper, csrf_token) { // updates the list in the database based on the Edit-List box
+	
 	var form = {};
 	$(['label', 'description']).each(function (index, item) {
-		form[item] = $("#edit-wrapper [data-field="+item+"] .edit-field-value").val();
+		form[item] = edit_wrapper.querySelector("[data-field='"+item+"'] .edit-field-value").value;
 	});
-	form['listid'] = $("#edit-wrapper input[name=listid]").val();
+	form['listid'] = edit_wrapper.dataset['listid'];
 	form['csrfmiddlewaretoken'] = csrf_token;
-
+	
 	$.ajax({
 		url: '/api/lists/change',
 		context: this,
@@ -329,7 +323,7 @@ function update_list_db(csrf_token) { // updates the list in the database based 
 				remove_edit_list_box();
 			} else {
 				for (var i=0; i<data['errors'].length; i++)
-					show_flash_message(data['errors'][i], {'background': "#F60018"});
+					show_flash_message(data['errors'][i], {'background': "#ff7373", 'border-color': 'red'});
 			}
 		},
 		error: function (obj, status) {
@@ -337,9 +331,10 @@ function update_list_db(csrf_token) { // updates the list in the database based 
 		} });
 }
 
-function remove_list_db(csrf_token) { // removes the list being edited at the Edit-List from the database
+function remove_list_db(edit_wrapper, csrf_token) { // removes the list being edited at the Edit-List from the database
+	
 	var form = {};
-	form['listid'] = $("#edit-wrapper input[name=listid]").val();
+	form['listid'] = edit_wrapper.dataset['listid'];
 	form['csrfmiddlewaretoken'] = csrf_token;
 
 	$.ajax({
@@ -355,7 +350,7 @@ function remove_list_db(csrf_token) { // removes the list being edited at the Ed
 				remove_edit_word_box();
 			} else {
 				for (var i=0; i<data['errors'].length; i++)
-					show_flash_message(data['errors'][i], {'background': "#F60018"});
+					show_flash_message(data['errors'][i], {'background': "#ff7373", 'border-color': 'red'});
 			}
 		},
 		error: function (obj, status) {

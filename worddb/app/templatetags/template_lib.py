@@ -1,9 +1,12 @@
 
+"""
+
 from django import template
 
 import datetime, re
 
-# this module was created while learning about tags and filters creating (django book chapter 9, a though one...)
+# this module was created while learning about tags and filters creating (django book chapter 9, a tough one...)
+
 
 register = template.Library()
 
@@ -49,3 +52,4 @@ class CurrentTimeNode(template.Node):
         now = datetime.datetime.now()
         context[self.var_name] = now.strftime(self.format_string)
         return ''
+"""

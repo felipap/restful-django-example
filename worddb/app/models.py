@@ -30,7 +30,7 @@ class UserForm(forms.Form):
 		'required':'please, enter a valid email address.'
 	})
 	
-	password = forms.RegexField(r'[A-Za-z0-9@#$%^&+= ]{4,50}$',
+	password = forms.RegexField(r'^[A-Za-z0-9@#$%^&+= ]{4,50}$',
 				error_messages={
 		'invalid':'invalid password. choose at least 4 characters, at most 50.',
 		'required':'enter a password.',
@@ -38,18 +38,21 @@ class UserForm(forms.Form):
 
 
 class ListForm(forms.Form):
+	label = forms.RegexField(r'^[A-Za-z0-9#\'"%^+ ]{1,30}$',
+				error_messages={
+		'invalid':'invalid list name. choose from 1 up to 30 characters.', 
+		'required':'enter a list name.',
+	})
+	"""
 	label = forms.CharField(max_length=30, error_messages={
 		'invalid':'invalid list name. choose at least 1 character.',
 		'required':'enter a list name, at least 3 characters long.',
 		'max_length':'list name is too long. choose at most 30 characters.'
 	})
+	"""
 	
 	description = forms.CharField(required=False, max_length=140, error_messages={
 		'max_length':'description is too long. choose at most 140 characters'})
-	
-	def clean_label(self):
-		if self.cleaned_data['label'].strip() == 'api':
-			raise forms.ValidationError('list name invalid') # cannot be "api"
 
 
 class WordForm(forms.Form):
