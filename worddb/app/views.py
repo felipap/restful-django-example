@@ -99,7 +99,7 @@ def logout(request):
 
 @require_logged
 @render_to('listspanel.html')
-def listspanel(request):
+def lisatspanel(request):
 
 	try:
 		user = User.objects.get(id=request.session['userid'])
@@ -135,7 +135,7 @@ def listspanel(request):
 
 @require_logged
 @render_to('listpage.html')
-def listpage(request, listname):
+def listpage(request, list_id):
 	
 	try:
 		user = User.objects.get(id=request.session['userid'])
@@ -144,7 +144,7 @@ def listpage(request, listname):
 		return redirect('/logout')
 	
 	try:
-		l = user.list_set.get(label=listname)
+		l = user.list_set.get(id=list_id)
 	except List.DoesNotExist:
 		raise Http404('list not found')
 	
@@ -160,7 +160,6 @@ def listpage(request, listname):
 	else:
 		order = None
 		value = None
-
 	
 	words = l.word_set.order_by('date_created') if not order else l.word_set.order_by(order)
 	return {'words': words, 'parentlist': l, 'order_by': value}
@@ -172,6 +171,137 @@ def listpage(request, listname):
 
 # API calls
 
+from functools import wraps
+
+# Decorator: appends 'user' argument after request
+#! Add optional 'handle404' argument?
+def get_user_or_redirect(request):
+	try:
+		return User.objects.get(id=request.session['userid'])
+	except User.DoesNotExist:
+		logger.warning("User %s not found. Redirecting ip %s to logout." % \
+			(request.session['userid'], request.META['REMOTE_ADDR']))
+		return redirect('/logout')
+
+def fetch_user (func):
+	# Handler decorator.
+	@wraps(func)
+	def wrapper(self, request, *args, **kwargs):
+		# Update kwargs with user.
+		kwargs['user'] = get_user_or_redirect(request)
+		return func(self, request, *args, **kwargs)
+	return wrapper
+
+class GenericHandler(object):
+	
+	methodMapGeneral = {
+		'GET': 'getAll',
+		'PUT': 'create'
+	}
+
+	methodMapObjSpecific = {
+		'GET': 'get',
+		'POST': 'update',
+		'DELETE': 'delete',
+	}
+
+	# objSpecifier is present in the url regex and, when it's not null, specifies
+	# an object to work with (usually passing the object's id). When a GET request
+	# is made, if an object is specified the app must return information about that
+	# object, otherwise, return all of them.
+	objSpecifier = None
+
+	def __call__(self, request, **urlFillers):
+		""" Called each time a request is fired to the url. """
+
+		user = get_user_or_redirect(request)
+		if urlFillers.get(self.objSpecifier):
+			# The request is object-specific: the action will take place on a
+			# defined object of the set, specified in urlFillers[self.objSpecifier]
+			method = getattr(self, self.methodMapObjSpecific[request.method])
+			return method(request, user, getattr(request, request.method),
+				urlFillers[self.objSpecifier])
+		else:
+			# The request is object-blind. getAll and create are two types of
+			# methods for non-object-specific requests.
+			method = getattr(self, self.methodMapGeneral[request.method])
+			return method(request, user, getattr(request, request.method))
+
+
+class ListHandler(GenericHandler):
+	""" REST handler for Lists.
+	The methods defined below and their respective mime-types are:
+		- create (JSON)
+		- getAll (HTML)
+		- update (JSON)
+		- get (HTML)
+		- delete (JSON)
+	"""
+
+	objSpecifier = 'list_id'
+
+	# object-blind methods
+
+	def create(self, request, user, form):
+		list_form = ListForm(form)
+		if not list_form.is_valid():
+			errors = sum(list_form.errors.values(), [])
+			return JsonObject(success=False, errors=errors)
+
+		fields = dict()
+		for arg in ('label', 'description'):
+			field[arg] = form[arg]
+		l = List.objects.create(user=user, **fields)
+		return JsonObject(success=True, text='list \'%s\' created' % l.label, listid=l.id)
+
+	@fetch_user
+	@render_to('listspanel.html')
+	def getAll(self, request, user, form):
+		return listspanel(request)
+
+	def update(self, request, user, form):
+		pass
+
+	# object-specific methods
+
+	def delete(self, request, user, form, list_id):
+		pass
+
+	def get(self, request, user, form, list_id):
+		return HttpResponse('')
+		return listpage(request, list_id)
+
+
+@require_logged
+@render_to('listspanel.html')
+def listspanel(request):
+
+	user = get_user_or_redirect(request)
+	
+	# if '?welcome=0', user has just signed in
+	# elif '?welcome=1' used has just logged in
+	# these arguments are passed by 'signin' and 'login' views, respectively
+	w_value = request.GET.get('welcome')
+	messages = []
+	if w_value or 1:
+		messages = ['welcome %s, %s!' % ('back' if w_value == '1' else '', user.first_name),]
+	
+	fields = {'created': 'date_created', 'modified': 'date_modified', 'listlabel': 'label'}
+
+	if 'order_by' in request.GET:
+		value = request.GET['order_by']
+		if value in fields:
+			order = fields[value]
+		elif value[0] == '-' and value[1:] in fields:
+			order = '-'+fields[value[1:]]
+		# fail silently
+	else:
+		order = None
+		value = None
+	
+	lists = user.list_set.order_by('date_created') if not order else user.list_set.order_by(order)
+	return {'lists': lists, 'flash_messages': messages, 'order_by': value}
+ 
 
 ## testing new format of urls
 
@@ -213,8 +343,7 @@ def add_list(request):
 
 
 @require_logged
-@require_method('POST')
-@require_args('listid')
+@require_args('list_id')
 def change_list(request):
 	# passing listid is obligatory, but description and label are optional
 
@@ -238,6 +367,10 @@ def change_list(request):
 	return JsonObject(success=True, text="list \'%s\' updated" % l.label)
 
 
+def change_list(request):
+	print "oi"
+	return JsonObject(success=True)
+
 @require_logged
 @require_method('POST')
 @require_args('listid')
@@ -258,7 +391,7 @@ def remove_list(request):
 @require_logged
 @require_method('POST')
 @require_args('listid', 'word', 'meaning', 'origin')
-def add_word(request):
+def add_word(request, list_id):
 
 	user = User.objects.get(id=request.session['userid'])
 	l = List.objects.get_list(user, id=request.POST['listid'])
@@ -307,7 +440,7 @@ def change_list(request):
 @require_logged
 @require_method('POST')
 @require_args('wordid', 'listid')
-def change_word(request):
+def change_word(request, list_id, word_id):
 	# passing listid and wordid is obligatory, but description and label are optional
 	
 	user = User.objects.get(id=request.session['userid'])

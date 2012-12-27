@@ -1,2 +1,15 @@
-﻿venv
+venv
+build
+turmacidada/media
+.gitBACKUP
+**/migrations/*
+settings/keys.py
+*.sqlite
+
 *.pyc
+*.pyo
+
+*~
+*.out
+*.swp
+*.lock

@@ -1,36 +1,69 @@
-from django.conf.urls.defaults import patterns, include, url
+# -*- coding: utf8 -*-
 
-# Uncomment the next two lines to enable the admin:
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls.static import static
+from django.conf.urls import patterns, include, url
+from django.conf import settings
+from django.core.urlresolvers import reverse
+
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'worddb.views.home', name='home'),
-    # url(r'^worddb/', include('worddb.foo.urls')),
+#
 
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+def serveREST(specifier, fallback=None):
+    # The controllers inside the specifier must show a completely reversable url.
+    def wrapper(request, *args, **kwargs):
+        print specifier
+        for method in specifier:
+            if request.method == method:
+                print "Oi"
+                return specifier[method](request, *args, **kwargs)
+        if fallback:
+            return fallback(request, *args, **kwargs)
+        raise Exception('No fallback method specified.')
+    return wrapper
 
-    # Uncomment the next line to enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
-)
 
 # from app/views.py
-urlpatterns += patterns('app.views', 
-    
+urlpatterns = patterns('app.views',
     url(r'^$', 'login'),
     url(r'^login/$', 'login'),
     url(r'^signin/$', 'signin'),
     url(r'^logout/$', 'logout'),
 
-    url(r'^lists/$', 'listspanel'), # lists panel for the user (template: listspanel.html)
-    url(r'^lists/(?P<listname>[\w\d,. -]+)$(?!^lists/api$)', 'listpage'), # list page (template: listpage.html)
+    # remove
+    # url(r'^lists/$', 'listspanel'), # lists panel for the user (template: listspanel.html)
+    # url(r'^lists/(?P<listname>[\w\d,. -]+)$(?!^lists/api$)', 'listpage'), # list page (template: listpage.html)
 
     # action in ('add', 'change', 'removes')
-    url(r'^api/lists/(?P<action>\w+)$', 'api_lists_redirect'),
-    url(r'^api/words/(?P<action>\w+)$', 'api_words_redirect'),
+    # url(r'^api/lists/(?P<action>\w+)$', 'api_lists_redirect'),
+    # url(r'^api/words/(?P<action>\w+)$', 'api_words_redirect'),
+    url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT, 'show_indexes': True}),
 )
+
+from app import views
+from app.views import ListHandler
+
+urlpatterns += patterns('',
+    url(r'^lists/(?P<list_id>[\w\d,. -]+)?$', ListHandler()),
+#        serveREST({'GET': views.listspanel, 'POST': views.add_list})),
+#    url(r'^lists/(?P<list_id>[\w\d,. -]+)$',
+#        serveREST({'GET': views.listpage, 'PUT': views.change_list, 'DELETE': views.remove_list})),
+
+    url(r'^lists/(?P<list_id>[\w\d,. -]+)/words',
+        serveREST({'POST': views.add_word})),
+    # url(r'^lists/(?P<listname>[\w\d,. -]+)/words/', )
+)
+
+urlpatterns += staticfiles_urlpatterns()
+
+# GET /users: Uma lista com todos os usuários;
+# POST /users: Cria um usuário;
+# GET /users/<id>: Visualização dos detalhes de um usuário;
+# PUT /users/<id>: Atualiza os dados de um usuário;
+# DELETE /users/<id>: Apaga um usuário.
 
 # API Calls
 # create new list

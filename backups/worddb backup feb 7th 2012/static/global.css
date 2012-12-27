@@ -1,0 +1,288 @@
+
+
+/* global css for worddb prototype
+*/
+
+/*
+* colors:;
+* grayed blue: #456D82 (links)
+* strong blue: #086FA1 (words/lists tags)
+* blue green: #009999 (field outline)
+* 'edit' list green: #00BB3F;
+*/
+
+/***************************/
+/* some smallish css reset */
+/***************************/
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body { padding: 10px 10px 35px 10px; }
+input { outline: none; }
+
+a, a:link, a:active { color: #457DC2; }
+a, a:link, a:visited, a:hover, a:active { text-decoration:none; }
+a:hover { color: #222; }
+
+li { displays: block; }
+
+*.unselectable {
+   -moz-user-select: -moz-none;
+   -khtml-user-select: none;
+   -webkit-user-select: none;
+   user-select: none;
+}
+
+
+/*****************************************************/
+/* general things */
+/******************/
+
+html {
+	backgrounds: url(/static/images/bg.png);
+	font-family: "Trebuchet MS", sans-serif;
+	font-size: 13px;
+}
+
+textarea, input {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	font-family: "Trebuchet MS", sans-serif;
+	text-align: justify;
+}
+
+#blackout {
+	position: fixed; top: 0; bottom: 0; left: 0; right: 0; 
+	background: black; 
+	opacity: .6; }
+
+
+footer {
+	position: fixed;
+	left: 0; right: 0; bottom: 0;
+	line-height: 30px;
+	color: #444;
+	background: #ddd;
+	border: 1px solid #aaa;
+	text-align: center;
+	text-shadow: #aaa 0px 0px 1px;
+}
+footer a, footer a:link, footer a:active { color: #457DF2; }
+footer a:hover, footer a:focus { color: #555; text-decoration: underline; }
+
+
+#flash-messages-wrapper {
+	position: fixed;
+	top: 5px;
+	right: 5px;
+	text-align: right; }
+
+	#flash-messages-wrapper li {
+		background: #0FB05E;
+		padding: 10px 15px;
+		color: white;
+		cursor: pointer;
+		font-size: 15px;
+		margin-bottom: 5px;
+		display: block;
+		clear: both;
+		float: right; }
+
+
+/*****************************************************/
+/* page content */
+/****************/
+
+/**********/
+/*  TAGS  */
+/**********/
+
+ul.tags-wrapper { display: table; }
+ul.tags-wrapper li { list-style-type: none; margin-left: px; }
+ul.tags-wrapper .tag { margin: 5px 0; }
+
+.wrapper {
+	display: inline-block;
+	margin: 0 10px 0 0;
+}
+
+.tag {
+	padding: 10px;
+	border: 2px solid transparent;
+	color: white;
+	box-shadow: 0 0px 5px #aaa;
+	display: inline-block;
+	cursor: pointer;
+	user-select: none; }
+a.tag { color: white; }
+a.tag:hover { color: white; }
+.tag:active { position: relative; top: 1px;
+	 cursor: pointer; }
+.tag:focus { border: 2px solid white; }
+
+	.tag.primary-tag {
+		background: #086FA1;
+		width: 210px; }
+	.tag.primary-tag:hover { background: #033E6B; }
+
+	.tag.auxiliar-tag {
+		padding: 10px;
+		background: #00BB3F;
+		display: inline-block; }
+	.tag.auxiliar-tag:hover { background: #007A29; }
+
+/* CHANGE THIS CLASS LABEL!!! */
+.secondary-info {
+	border: 1px solid #aaa;
+	background: #ccc;
+	padding: 5px;
+	margin-bottom: 10px;
+	color: #222;
+}
+	.secondary-info .title {
+		font-weight: bold;
+		font-size: 15px; }
+
+	.secondary-info .content {
+		margin-left: 10px;
+		max-width: 300px;
+		overflow: hidden; }
+
+/***********************/
+/* CSS FOR STYLED BOX  */
+/***********************/
+
+.styled-box {
+	position: absolute;
+	background: rgba(64,64,64, 1);
+	padding: 20px;
+	border-radius: 12px; /* try to match close-button radius */
+	text-align: left;
+
+	width: 600px;
+	top: 15%; left: 50%;
+	margin-left: -300px;
+}
+
+.styled-box .close-button, .styled-box .edit-field {
+	-webkit-transition-duration: 0.1s;
+	-webkit-transition-property: all; }
+
+	.styled-box .box-title {
+		color: white;
+		font-size: 18px;
+		text-shadow: #000 0px 0px 3px; }
+
+	.styled-box	.close-button {
+			position: absolute;
+			top: 0; right: 0;
+			width: 24px; height: 24px;
+
+			background: url(/static/close_button.png) no-repeat;
+			opacity: 0.3;
+			cursor: pointer; }
+	.styled-box	.close-button:hover { opacity: 1; }
+
+	.styled-box .buttons { margin-top: 10px; }
+
+
+/* css for EDIT */
+	
+	.styled-box .edit-field {
+		height: 100%;
+		margin: 5px 0;
+		padding: 5px;
+		display: table; }
+	.styled-box .edit-field:hover { background: rgba(0, 0, 0, 0.5) }
+
+		.styled-box	.edit-field-label {
+			width: 100px;
+			padding: 13px 10px;
+			font-size: 15px;
+			color: white;
+			float: left; }
+
+		.styled-box .edit-field-value {
+			background: white;
+			width: 450px;
+			padding: 13px 10px;
+				
+			font-size: 15px;
+			height: 20px;
+
+			float: right;
+			text-align: justify;
+			display: inline;
+			
+			resize: none;
+			overflow: hidden; }
+		.styled-box .edit-field-value:focus { outline: 3px solid #00A287; }
+
+		.styled-box .edit-field .field-info {
+			position: relative;
+			background: #00a12b;
+			margin: 0 -25px;
+			top: 5px;
+			padding: 5px 10px;
+			color: white;
+			clear: both;
+			
+			border: 1px solid #444;
+			text-shadow: #333 0px 0px 2px; }
+		.styled-box .edit-field .field-info a {
+			text-shadow: 0;
+			color: white;
+			font-weight: bold;
+		}
+		.styled-box .edit-field .field-info a:hover { text-decoration: underline; }
+		.styled-box .edit-field .field-info.error { background: #c60018; }
+
+.styled-box.login-box { width: 370px; left: 50%; margin-left: -205px; padding: 15px;}
+.styled-box.login-box .edit-field { margin-top: 5; }
+.styled-box.login-box .edit-field-label { padding: 0 0 5px 0; width: 340px;}
+.styled-box.login-box .edit-field-value { width: 340px; }
+
+/*********************************/
+/*  CSS FOR ORDERBY AND TOOLBOX  */
+/*********************************/
+
+.orderby-box {
+	display: table;
+	background: #444;
+	padding: 1px 3px;
+	border: 1px solid #444;
+	border-radius: 1px;
+	font-size: 12px;
+	color: #fff;
+	display: inline-block;
+}
+
+	.orderby-box div {
+		display: inline-block;
+		padding: 2px 4px; }
+
+	.orderby-box select {
+		padding: 1px 1px;
+		font-size: 12px;
+		color: white;
+		font: inherit;
+		border-radius: 2px;
+		text-shadow: 0 1px rgba(0, 0, 0, 0.1);
+
+		-webkit-transition-duration: 0.2s;
+		-webkit-transition-property: all;
+		border-color: #888;
+		background: #444; }
+		
+		.orderby-box select:hover, .orderby-box select:foscus {
+			text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+			box-shadow: none;
+			outline:none; 
+			border: none;}
+
+		.orderby-box select option { color: black; }

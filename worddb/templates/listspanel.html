@@ -89,7 +89,7 @@ var lists = [
 ];
 
 var list_tag_html = '<li class="list" data-label="${label}" data-description="${description}" data-listid="${listid}">\
-			<div tabindex="0" onClick="goto_list(this.parentElement.dataset[\'label\'])" class="tag primary-tag">\
+			<div tabindex="0" onClick="goto_list(this.parentElement.dataset[\'listid\'])" class="tag primary-tag">\
 				<span class="list-label">${label}</span>\
 				<button class="edit-button" onClick="make_edit_list_box(this.parentElement.parentElement); event.stopPropagation();">edit</button>\
 			</div>\

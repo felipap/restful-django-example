@@ -38,7 +38,7 @@ function show_flash_error(message, customcss, delay) {
 }
 
 
-function goto_list(listname) { window.location.replace('/lists/'+encodeURI(listname)); }
+function goto_list(listname) { window.location.href = '/lists/'+encodeURI(listname); }
 
 function open_link(link) { window.open(link); return false; }
 
@@ -147,10 +147,10 @@ function add_word_db(edit_wrapper, parentid, csrf_token) { // adds a word to the
 	form['csrfmiddlewaretoken'] = csrf_token;
 
 	$.ajax({
-		url: '/api/words/add',
+		url: window.location.href+'/words', // gambiarra?
 		context: this,
 		data: form,
-		type: 'post',
+		type: 'POST',
 		dataType: 'json',
 		success: function (data, status) {
 			if (data['success']) {
@@ -280,8 +280,10 @@ function add_list_db(wrapper, csrf_token) { // adds a list to the database based
 	});
 	form['csrfmiddlewaretoken'] = csrf_token;
 
+	console.log(csrf_token);
+
 	$.ajax({
-		url: '/api/lists/add',
+		url: '/lists/',
 		context: this,
 		data: form,
 		type: 'post',
@@ -311,11 +313,11 @@ function update_list_db(edit_wrapper, csrf_token) { // updates the list in the d
 	form['csrfmiddlewaretoken'] = csrf_token;
 	
 	$.ajax({
-		url: '/api/lists/change',
+		url: '/lists/',
 		context: this,
 		data: form,
 		dataType: 'json',
-		type: 'post',
+		type: 'PUT',
 		success: function (data, status) {
 			if (data['success']) {
 				show_flash_message(data['text']);
@@ -338,10 +340,10 @@ function remove_list_db(edit_wrapper, csrf_token) { // removes the list being ed
 	form['csrfmiddlewaretoken'] = csrf_token;
 
 	$.ajax({
-		url: '/api/lists/remove',
+		url: '/lists/'+form['listid'],
 		context: this, 
 		data: form,
-		type: 'post',
+		type: 'DELETE',
 		dataType: 'json', 
 		success: function (data, status) {
 			if (data['success']) {
