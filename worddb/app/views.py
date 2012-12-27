@@ -94,75 +94,6 @@ def logout(request):
 	del request.session['userid']
 	return redirect('/login')
 
-###############################################################
-
-
-@require_logged
-@render_to('listspanel.html')
-def lisatspanel(request):
-
-	try:
-		user = User.objects.get(id=request.session['userid'])
-	except User.DoesNotExist: # user not in db anymore (any db resets? :)
-		logger.warning("user %s not found. redirecting ip %s to logout." % \
-			(request.session['userid'], request.META['REMOTE_ADDR']))
-		return redirect('/logout')
-	
-	# if '?welcome=0', user has just signed in
-	# elif '?welcome=1' used has just logged in
-	# these arguments are passed by 'signin' and 'login' views, respectively
-	w_value = request.GET.get('welcome')
-	messages = []
-	if w_value:
-		messages = ['welcome %s, %s!' % ('back' if w_value == '1' else '', user.first_name),]
-	
-	fields = {'created': 'date_created', 'modified': 'date_modified', 'listlabel': 'label'}
-
-	if 'order_by' in request.GET:
-		value = request.GET['order_by']
-		if value in fields:
-			order = fields[value]
-		elif value[0] == '-' and value[1:] in fields:
-			order = '-'+fields[value[1:]]
-		# fail silently
-	else:
-		order = None
-		value = None
-	
-	lists = user.list_set.order_by('date_created') if not order else user.list_set.order_by(order)
-	return {'lists': lists, 'flash_messages': messages, 'order_by': value}
- 
-
-@require_logged
-@render_to('listpage.html')
-def listpage(request, list_id):
-	
-	try:
-		user = User.objects.get(id=request.session['userid'])
-	except User.DoesNotExist: # user not in db anymore (any db resets? :)
-		# user not found. redirect to logout.
-		return redirect('/logout')
-	
-	try:
-		l = user.list_set.get(id=list_id)
-	except List.DoesNotExist:
-		raise Http404('list not found')
-	
-	fields = {'created': 'date_created', 'modified': 'date_modified', 'word': 'word'}
-
-	if 'order_by' in request.GET:
-		value = request.GET['order_by']
-		if value in fields:
-			order = fields[value]
-		elif value[0] == '-' and value[1:] in fields:
-			order = '-'+fields[value[1:]]
-		# fail silently
-	else:
-		order = None
-		value = None
-	
-	words = l.word_set.order_by('date_created') if not order else l.word_set.order_by(order)
-	return {'words': words, 'parentlist': l, 'order_by': value}
 
 ###############################################################
 
@@ -211,6 +142,7 @@ class GenericHandler(object):
 	# object, otherwise, return all of them.
 	objSpecifier = None
 
+
 	def __call__(self, request, **urlFillers):
 		""" Called each time a request is fired to the url. """
 
@@ -254,7 +186,6 @@ class ListHandler(GenericHandler):
 		l = List.objects.create(user=user, **fields)
 		return JsonObject(success=True, text='list \'%s\' created' % l.label, listid=l.id)
 
-	@fetch_user
 	@render_to('listspanel.html')
 	def getAll(self, request, user, form):
 		return listspanel(request)
