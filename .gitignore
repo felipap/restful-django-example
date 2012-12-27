@@ -1,9 +1,8 @@
 venv
 build
-turmacidada/media
 .gitBACKUP
+backups/*
 **/migrations/*
-settings/keys.py
 *.sqlite
 
 *.pyc
