@@ -125,6 +125,7 @@ def render_to(template=None, mimetype=None):
             tmpl = output.pop('TEMPLATE', template)
 
             # custom addition of csrf_token on every page!
+            
             if not 'csrf_token' in output:
 	            output['csrf_token'] = csrf(request)['csrf_token']
             

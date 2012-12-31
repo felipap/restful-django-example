@@ -84,7 +84,7 @@ _csrf_token = '{{csrf_token}}';
 
 var lists = [
 {% for list in lists %}
-	{'label': '{{list.label}}', 'description': '{{list.description}}', 'listid': '{{list.id}}', },
+	{'label': '{{list.label}}', 'description': '{{list.description}}', 'listid': '{{list.id }}', },
 {% endfor %}
 ];
 

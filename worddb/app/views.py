@@ -12,18 +12,16 @@ from app.decorators import require_logged, require_not_logged, require_args, req
 
 # import re
 # import logging
-import pdb # import python debugger
+# import pdb
 
 
-# TO DOs:
+# TODOs:
 # implement log system
 # implementar salvar pelo comando Ctrl+S no browser
 # mudar nome do elemento '.list' em listspanel.html
 # add search to words
 # organize a tool box
 ## organize 'search this word here' when meaning is empty
-
-
 
 # JSON pattern for the application;
 # succes: True | False => indicates wheter the action succeded
@@ -102,65 +100,80 @@ def logout(request):
 
 # API calls
 
+# import logging
+# logger = logging.getLogger(__name__)
+
+# class BadProgramming (Exception):
+#	""" Raise it at will. """
+
+
+
 from functools import wraps
+from django.shortcuts import get_object_or_404
+from app.models import User, List, Word, get_hash, UserForm, ListForm, WordForm
 
-# Decorator: appends 'user' argument after request
-#! Add optional 'handle404' argument?
-def get_user_or_redirect(request):
-	try:
-		return User.objects.get(id=request.session['userid'])
-	except User.DoesNotExist:
-		logger.warning("User %s not found. Redirecting ip %s to logout." % \
-			(request.session['userid'], request.META['REMOTE_ADDR']))
-		return redirect('/logout')
+from doREST import RESTHandler
+from doREST import Json404, RaisableRedirect
 
-def fetch_user (func):
-	# Handler decorator.
-	@wraps(func)
-	def wrapper(self, request, *args, **kwargs):
-		# Update kwargs with user.
-		kwargs['user'] = get_user_or_redirect(request)
-		return func(self, request, *args, **kwargs)
-	return wrapper
+from app.helpers import get_user_or_404
+from app.helpers import get_object_or_json404
 
-class GenericHandler(object):
-	
-	methodMapGeneral = {
-		'GET': 'getAll',
-		'PUT': 'create'
-	}
+class WordHandler(RESTHandler):
+	""" REST handler for Words.
+	The methods defined below and their respective mime-types are:
+		- create (JSON)
+		- getAll (HTML)
+		- update (JSON)
+		- get (HTML)
+		- delete (JSON)
+	"""
 
-	methodMapObjSpecific = {
-		'GET': 'get',
-		'POST': 'update',
-		'DELETE': 'delete',
-	}
+	objSpecifier = 'word_id'
+	requireLogged = True
 
-	# objSpecifier is present in the url regex and, when it's not null, specifies
-	# an object to work with (usually passing the object's id). When a GET request
-	# is made, if an object is specified the app must return information about that
-	# object, otherwise, return all of them.
-	objSpecifier = None
+	# JSON
+	# @require_args('listid', 'word', 'meaning', 'origin')
+	def create(request, user, form, list_id):
+		list = get_object_or_json404(List, id=list_id)
+
+		user = User.objects.get(id=request.session['userid'])
+		l = List.objects.get_list(user, id=request.POST['listid'])
+		if not l:
+			return JsonObject(success=False, text='list not found')
+		
+		# test incoming data
+		word_form = WordForm(request.POST)
+		if not word_form.is_valid():
+			errors = sum(word_form.errors.values(), [])
+			return JsonObject(success=False, errors=errors)
+		
+		fields = dict()
+		for arg in ('word', 'meaning', 'origin'):
+			fields[arg] = request.POST[arg]
+		w = Word.objects.create(list=l, **fields)
+
+		return JsonObject(success=True, text='word \'%s\' added to \'%s\'' % (word_form['word'].value(), l.label), wordid=w.id)
+		pass
+
+	# HTML
+	# @render_to('listpage.html')
+	# def getAll(request, user, form):
+	# 	pass
+
+	# JSON
+	def update(request, user, form, list_id, word_id):
+		print "called"
+
+	# JSON
+	def delete(request, user, form, list_id, word_id):
+		pass
+
+	# HTML
+	# def get(request, user, form, list_id, word_id):
+	# 	pass
 
 
-	def __call__(self, request, **urlFillers):
-		""" Called each time a request is fired to the url. """
-
-		user = get_user_or_redirect(request)
-		if urlFillers.get(self.objSpecifier):
-			# The request is object-specific: the action will take place on a
-			# defined object of the set, specified in urlFillers[self.objSpecifier]
-			method = getattr(self, self.methodMapObjSpecific[request.method])
-			return method(request, user, getattr(request, request.method),
-				urlFillers[self.objSpecifier])
-		else:
-			# The request is object-blind. getAll and create are two types of
-			# methods for non-object-specific requests.
-			method = getattr(self, self.methodMapGeneral[request.method])
-			return method(request, user, getattr(request, request.method))
-
-
-class ListHandler(GenericHandler):
+class ListHandler(RESTHandler):
 	""" REST handler for Lists.
 	The methods defined below and their respective mime-types are:
 		- create (JSON)
@@ -171,10 +184,10 @@ class ListHandler(GenericHandler):
 	"""
 
 	objSpecifier = 'list_id'
+	requireLogged = True
 
-	# object-blind methods
-
-	def create(self, request, user, form):
+	# JSON
+	def create(request, user, form):
 		list_form = ListForm(form)
 		if not list_form.is_valid():
 			errors = sum(list_form.errors.values(), [])
@@ -182,79 +195,63 @@ class ListHandler(GenericHandler):
 
 		fields = dict()
 		for arg in ('label', 'description'):
-			field[arg] = form[arg]
+			fields[arg] = form[arg]
 		l = List.objects.create(user=user, **fields)
 		return JsonObject(success=True, text='list \'%s\' created' % l.label, listid=l.id)
 
+	# HTML
 	@render_to('listspanel.html')
-	def getAll(self, request, user, form):
-		return listspanel(request)
+	def getAll(request, user, form):
+		fields = {'created': 'date_created', 'modified': 'date_modified', 'listlabel': 'label'}
 
-	def update(self, request, user, form):
+		if 'order_by' in request.GET:
+			value = request.GET['order_by']
+			if value in fields:
+				order = fields[value]
+			elif value[0] == '-' and value[1:] in fields:
+				order = '-'+fields[value[1:]]
+			# fail silently
+		else:
+			order = None
+			value = None
+		
+		lists = user.list_set.order_by('date_created') if not order else user.list_set.order_by(order)
+		return {'lists': lists, 'order_by': value}
+
+	# JSON
+	def update(request, user, form, list_id):
+		return change_list(request)
+
+	# JSON
+	def delete(request, user, form, list_id):
 		pass
 
-	# object-specific methods
-
-	def delete(self, request, user, form, list_id):
-		pass
-
-	def get(self, request, user, form, list_id):
-		return HttpResponse('')
-		return listpage(request, list_id)
-
-
-@require_logged
-@render_to('listspanel.html')
-def listspanel(request):
-
-	user = get_user_or_redirect(request)
-	
-	# if '?welcome=0', user has just signed in
-	# elif '?welcome=1' used has just logged in
-	# these arguments are passed by 'signin' and 'login' views, respectively
-	w_value = request.GET.get('welcome')
-	messages = []
-	if w_value or 1:
-		messages = ['welcome %s, %s!' % ('back' if w_value == '1' else '', user.first_name),]
-	
-	fields = {'created': 'date_created', 'modified': 'date_modified', 'listlabel': 'label'}
-
-	if 'order_by' in request.GET:
-		value = request.GET['order_by']
-		if value in fields:
-			order = fields[value]
-		elif value[0] == '-' and value[1:] in fields:
-			order = '-'+fields[value[1:]]
-		# fail silently
-	else:
-		order = None
-		value = None
-	
-	lists = user.list_set.order_by('date_created') if not order else user.list_set.order_by(order)
-	return {'lists': lists, 'flash_messages': messages, 'order_by': value}
+	# HTML
+	@render_to('listpage.html')
+	def get(request, user, form, list_id):
+		
+		list = get_object_or_404(List, id=list_id)
+		fields = {'created': 'date_created', 'modified': 'date_modified', 'word': 'word'}
+		if 'order_by' in request.GET:
+			value = request.GET['order_by']
+			if value in fields:
+				order = fields[value]
+			elif value[0] == '-' and value[1:] in fields:
+				order = '-'+fields[value[1:]]
+			# fail silently
+		else:
+			order = None
+			value = None
+		
+		words = list.word_set.order_by('date_created') if not order else list.word_set.order_by(order)
+		return {'words': words, 'parentlist': list, 'order_by': value}
  
-
-## testing new format of urls
-
-@require_method('POST')
-def api_lists_redirect(request, action):
-	E = {'add': add_list, 'change': change_list, 'remove': remove_list}
-	if action not in E:
-		return HttpResponseForbidden('invalid call')
-	return E[action](request)
-
-@require_method('POST')
-def api_words_redirect(request, action):
-	E = {'add': add_word, 'change': change_word, 'remove': remove_word}
-	if action not in E:
-		return HttpResponseForbidden('invalid call')
-	return E[action](request)
 
 ################################
 
 @require_logged
-@require_method('POST')
 @require_args('label', 'description')
+@require_method('POST')
 def add_list(request):
 
 	user = User.objects.get(id=request.session['userid'])
@@ -274,9 +271,9 @@ def add_list(request):
 
 
 @require_logged
-@require_args('list_id')
+@require_method('POST')
+@require_args('listid', 'label', 'description')
 def change_list(request):
-	# passing listid is obligatory, but description and label are optional
 
 	user = User.objects.get(id=request.session['userid'])
 	l = List.objects.get_list(user, id=request.POST['listid'])
@@ -297,10 +294,6 @@ def change_list(request):
 	l.save()
 	return JsonObject(success=True, text="list \'%s\' updated" % l.label)
 
-
-def change_list(request):
-	print "oi"
-	return JsonObject(success=True)
 
 @require_logged
 @require_method('POST')
@@ -343,29 +336,6 @@ def add_word(request, list_id):
 	return JsonObject(success=True, text='word \'%s\' added to \'%s\'' % (word_form['word'].value(), l.label), wordid=w.id)
 
 
-@require_logged
-@require_method('POST')
-@require_args('listid', 'label', 'description')
-def change_list(request):
-
-	user = User.objects.get(id=request.session['userid'])
-	l = List.objects.get_list(user, id=request.POST['listid'])
-	if not l:
-		return JsonObject(success=False, errors=['list not found',])
-
-	errors = []
-	list_form = ListForm(request.POST)
-	for arg in ('label', 'description'):
-		if arg in request.POST:
-			if list_form[arg].errors:
-				errors += list_form[arg].errors
-			else: 
-				setattr(l, arg, request.POST[arg])
-	if errors:
-		return JsonObject(success=False, errors=errors)
-	
-	l.save()
-	return JsonObject(success=True, text="list \'%s\' updated" % l.label)
 
 
 @require_logged

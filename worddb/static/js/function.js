@@ -144,14 +144,17 @@ function add_word_db(edit_wrapper, parentid, csrf_token) { // adds a word to the
 		form[item] = edit_wrapper.querySelector("[data-field="+item+"] .edit-field-value").value;
 	});
 	form['listid'] = parentid;
-	form['csrfmiddlewaretoken'] = csrf_token;
+	console.log("oi");
 
 	$.ajax({
 		url: window.location.href+'/words', // gambiarra?
 		context: this,
 		data: form,
-		type: 'POST',
+		type: 'PUT',
 		dataType: 'json',
+		beforeSend: function (xhr) {
+			xhr.setRequestHeader("X-CSRFToken", csrf_token);
+		},
 		success: function (data, status) {
 			if (data['success']) {
 				show_flash_message(data['text']);
@@ -178,11 +181,14 @@ function update_word_db(edit_wrapper, parentid, csrf_token) { // updates the wor
 	form['csrfmiddlewaretoken'] = csrf_token;
 
 	$.ajax({
-		url: '/api/words/change', 
+		url: window.location.href+'/words/'+form['wordid'], 
 		context: this,
 		data: form,
 		type: 'post',
 		dataType: 'json',
+		beforeSend: function (xhr) {
+			xhr.setRequestHeader("X-CSRFToken", csrf_token);
+		},
 		success: function (data, status) {
 			if (data['success']) {
 				show_flash_message(data['text']);
@@ -206,11 +212,14 @@ function remove_word_db(edit_wrapper, parentid, csrf_token) { // removes the wor
 	form['csrfmiddlewaretoken'] = csrf_token;
 
 	$.ajax({
-		url: '/api/words/remove',
+		url: window.location.href+'/words/'+form['wordid'], 
 		context: this, 
 		data: form,
-		type: 'post',
+		type: 'delete',
 		dataType: 'json',
+		beforeSend: function (xhr) {
+			xhr.setRequestHeader("X-CSRFToken", csrf_token);
+		},
 		success: function (data, status) {
 			if (data['success']) {
 				show_flash_message(data['text']);
@@ -273,21 +282,20 @@ function remove_edit_list_box() {
 /****************************/
 
 function add_list_db(wrapper, csrf_token) { // adds a list to the database based on Add-List Box
-	
 	var form = {};
 	$(['label', 'description']).each(function (index, item) {
 		form[item] = wrapper.querySelector("[data-field="+item+"] .edit-field-value").value;
 	});
-	form['csrfmiddlewaretoken'] = csrf_token;
-
-	console.log(csrf_token);
 
 	$.ajax({
 		url: '/lists/',
 		context: this,
 		data: form,
-		type: 'post',
+		type: 'PUT',
 		dataType: 'json',
+		beforeSend: function (xhr) {
+			xhr.setRequestHeader("X-CSRFToken", csrf_token);
+		},
 		success: function (data, status) {
 			if (data['success']) {
 				show_flash_message(data['text']);	
@@ -304,20 +312,22 @@ function add_list_db(wrapper, csrf_token) { // adds a list to the database based
 }
 
 function update_list_db(edit_wrapper, csrf_token) { // updates the list in the database based on the Edit-List box
-	
-	var form = {};
-	$(['label', 'description']).each(function (index, item) {
-		form[item] = edit_wrapper.querySelector("[data-field='"+item+"'] .edit-field-value").value;
-	});
-	form['listid'] = edit_wrapper.dataset['listid'];
-	form['csrfmiddlewaretoken'] = csrf_token;
+
+	var form = {
+		description: edit_wrapper.querySelector("[data-field='description'] .edit-field-value").value,
+		label: edit_wrapper.querySelector("[data-field='label'] .edit-field-value").value,
+		listid: edit_wrapper.dataset['listid'],
+	};
 	
 	$.ajax({
-		url: '/lists/',
+		url: '/lists/'+form['listid'],
 		context: this,
 		data: form,
 		dataType: 'json',
-		type: 'PUT',
+		type: 'POST',
+		beforeSend: function (xhr) {
+			xhr.setRequestHeader("X-CSRFToken", csrf_token);
+		},
 		success: function (data, status) {
 			if (data['success']) {
 				show_flash_message(data['text']);
@@ -344,7 +354,10 @@ function remove_list_db(edit_wrapper, csrf_token) { // removes the list being ed
 		context: this, 
 		data: form,
 		type: 'DELETE',
-		dataType: 'json', 
+		dataType: 'json',
+		beforeSend: function (xhr) {
+			xhr.setRequestHeader("X-CSRFToken", csrf_token);
+		},		
 		success: function (data, status) {
 			if (data['success']) {
 				show_flash_message(data['text']);

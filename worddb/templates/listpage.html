@@ -93,7 +93,7 @@ _csrf_token = '{{ csrf_token }}';
 
 var words = [
 {% for word in words %}
-	{'word': '{{word.word}}', 'origin': '{{word.origin}}', 'meaning': '{{word.meaning}}', 'wordid': '{{word.id}}'},
+	{'word': '{{word.word}}', 'origin': '{{word.origin|escapejs}}', 'meaning': '{{word.meaning|escapejs}}', 'wordid': '{{word.id}}'},
 {% endfor %}
 ];
 

@@ -10,28 +10,12 @@ from django.core.urlresolvers import reverse
 from django.contrib import admin
 admin.autodiscover()
 
-#
-
-def serveREST(specifier, fallback=None):
-    # The controllers inside the specifier must show a completely reversable url.
-    def wrapper(request, *args, **kwargs):
-        print specifier
-        for method in specifier:
-            if request.method == method:
-                print "Oi"
-                return specifier[method](request, *args, **kwargs)
-        if fallback:
-            return fallback(request, *args, **kwargs)
-        raise Exception('No fallback method specified.')
-    return wrapper
-
-
 # from app/views.py
-urlpatterns = patterns('app.views',
-    url(r'^$', 'login'),
-    url(r'^login/$', 'login'),
-    url(r'^signin/$', 'signin'),
-    url(r'^logout/$', 'logout'),
+urlpatterns = patterns('',
+    url(r'^$', 'django.views.generic.simple.redirect_to', {'url': 'login/'}),
+    url(r'^login/$', 'app.views.login'),
+    url(r'^signin/$', 'app.views.signin'),
+    url(r'^logout/$', 'app.views.logout'),
 
     # remove
     # url(r'^lists/$', 'listspanel'), # lists panel for the user (template: listspanel.html)
@@ -44,16 +28,17 @@ urlpatterns = patterns('app.views',
 )
 
 from app import views
-from app.views import ListHandler
+from app.views import ListHandler, WordHandler
 
 urlpatterns += patterns('',
     url(r'^lists/(?P<list_id>[\w\d,. -]+)?$', ListHandler()),
+    url(r'^lists/(?P<list_id>[\w\d,. -]+)/words/(?P<word_id>[\w\d,. -]+)?$', WordHandler()),
 #        serveREST({'GET': views.listspanel, 'POST': views.add_list})),
 #    url(r'^lists/(?P<list_id>[\w\d,. -]+)$',
 #        serveREST({'GET': views.listpage, 'PUT': views.change_list, 'DELETE': views.remove_list})),
 
-    url(r'^lists/(?P<list_id>[\w\d,. -]+)/words',
-        serveREST({'POST': views.add_word})),
+   # url(r'^lists/(?P<list_id>[\w\d,. -]+)/words',
+     #   serveREST({'POST': views.add_word})),
     # url(r'^lists/(?P<listname>[\w\d,. -]+)/words/', )
 )
 
