@@ -71,6 +71,14 @@ class RESTHandler(object):
 		method = getattr(self, method_set[request.method])
 		return method.im_func(**args)
 
+	def _process_fillers(urlFillers):
+		objs = []
+		for specifier in urlFillers:
+			model = objectMap.get(specifier)
+			if model:
+				name, attr = obj.rsplit('_', 1)
+				obj[name] = get_object_or_404(model, **{name:attr})
+		return objs
 
 	@staticmethod
 	def _get_form_data(request, method):
