@@ -215,7 +215,7 @@ function remove_word_db(edit_wrapper, parentid, csrf_token) { // removes the wor
 		url: window.location.href+'/words/'+form['wordid'], 
 		context: this, 
 		data: form,
-		type: 'delete',
+		type: 'DELETE',
 		dataType: 'json',
 		beforeSend: function (xhr) {
 			xhr.setRequestHeader("X-CSRFToken", csrf_token);

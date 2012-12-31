@@ -113,7 +113,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'worddb.app.doREST.RESTMiddleware',
+    'worddb.app.helpers.CustomMiddleware',
 )
 
 ROOT_URLCONF = 'worddb.urls'

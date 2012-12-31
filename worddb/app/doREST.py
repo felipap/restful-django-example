@@ -3,13 +3,13 @@
 
 """
 
-
+# Django sutff
 from django.http import HttpResponse
 from django.shortcuts import redirect
-
 from django.core.urlresolvers import reverse, NoReverseMatch
 
-from helpers import get_user_or_404
+# Project stuff
+from helpers import get_user_or_404, get_object_or_404
 from helpers import BadProgramming
 
 ##
@@ -17,6 +17,12 @@ from helpers import BadProgramming
 class RESTHandler(object):
 	"""
 	Obs: The methods of the subclasses to handle the requests are all static.
+
+	#! document
+	objectMap:
+		objectMap = {
+			'modelA_id': ModelA
+		}
 	"""
 
 	# These don't act on an object in particular.	
@@ -61,9 +67,10 @@ class RESTHandler(object):
 			method_set = self.setActions
 			del urlFillers[self.objSpecifier]
 		
-		args.update(urlFillers)
+		args.update(_process_fillers(urlFillers))
 		method = getattr(self, method_set[request.method])
 		return method.im_func(**args)
+
 
 	@staticmethod
 	def _get_form_data(request, method):
@@ -102,35 +109,6 @@ class RESTHandler(object):
 ##
 
 
-class Json404(Exception):   
-	""" Returns 404 in a Json format. """
-
-
-class RaisableRedirect(Exception):
-	""" Redirects when raised.
-	Not pythonic or wtever? No fucks given.
-	Usage
-		raise RaisableRedirect('/logout')
-	"""
-
-	def __init__(self, url):
-		
-		try:
-			reverse(url)
-		except NoReverseMatch:
-			import helpers
-			raise helpers.BadProgramming, "The given url is not reversible."
-		else:
-			self.url = url
-
-class RESTMiddleware(object):
-	""" Custom middleware to catch custom exceptions by the application. """
-
-	def process_exception(self, request, exception):
-		if isinstance(exception, Json404):
-			return HttpResponse("{404, tá?}")
-		elif isinstance(exception, RaisableRedirect):
-			return redirect(exception.url)
 
 # from django.template import RequestContext, loader
 # from django.conf import settings

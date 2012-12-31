@@ -28,6 +28,7 @@ from app.decorators import require_logged, require_not_logged, require_args, req
 # text [text] => general text information // substitute by a messages list or smthg...
 # errors: [list] => shows errors associated with the call
 
+
 def JsonObject(**obj):
 	return HttpResponse(simplejson.dumps(obj))
 
@@ -67,7 +68,6 @@ def signin(request):
 @require_not_logged
 @render_to('login.html')
 def login(request):
-
 	if request.method == 'GET':
 		return dict()
 	
@@ -87,9 +87,11 @@ def login(request):
 			redirect='/lists?welcome=1')
 
 
-@require_logged
 def logout(request):
-	del request.session['userid']
+	try:
+		del request.session['userid']
+	except KeyError:
+		pass # Fail silently
 	return redirect('/login')
 
 
@@ -103,78 +105,27 @@ def logout(request):
 # import logging
 # logger = logging.getLogger(__name__)
 
-# class BadProgramming (Exception):
-#	""" Raise it at will. """
 
-
-
+# Python stuff
 from functools import wraps
+import logging
+
+# Django stuff
 from django.shortcuts import get_object_or_404
+
+# Project stuff
 from app.models import User, List, Word, get_hash, UserForm, ListForm, WordForm
+from app.doREST import RESTHandler
+from app.helpers import RaisableRedirect, Json404 # Exceptions
+from app.helpers import get_user_or_404, get_object_or_json404
+from app.helpers import render_to
 
-from doREST import RESTHandler
-from doREST import Json404, RaisableRedirect
 
-from app.helpers import get_user_or_404
-from app.helpers import get_object_or_json404
-
-class WordHandler(RESTHandler):
-	""" REST handler for Words.
-	The methods defined below and their respective mime-types are:
-		- create (JSON)
-		- getAll (HTML)
-		- update (JSON)
-		- get (HTML)
-		- delete (JSON)
-	"""
-
-	objSpecifier = 'word_id'
-	requireLogged = True
-
-	# JSON
-	# @require_args('listid', 'word', 'meaning', 'origin')
-	def create(request, user, form, list_id):
-		list = get_object_or_json404(List, id=list_id)
-
-		user = User.objects.get(id=request.session['userid'])
-		l = List.objects.get_list(user, id=request.POST['listid'])
-		if not l:
-			return JsonObject(success=False, text='list not found')
-		
-		# test incoming data
-		word_form = WordForm(request.POST)
-		if not word_form.is_valid():
-			errors = sum(word_form.errors.values(), [])
-			return JsonObject(success=False, errors=errors)
-		
-		fields = dict()
-		for arg in ('word', 'meaning', 'origin'):
-			fields[arg] = request.POST[arg]
-		w = Word.objects.create(list=l, **fields)
-
-		return JsonObject(success=True, text='word \'%s\' added to \'%s\'' % (word_form['word'].value(), l.label), wordid=w.id)
-		pass
-
-	# HTML
-	# @render_to('listpage.html')
-	# def getAll(request, user, form):
-	# 	pass
-
-	# JSON
-	def update(request, user, form, list_id, word_id):
-		print "called"
-
-	# JSON
-	def delete(request, user, form, list_id, word_id):
-		pass
-
-	# HTML
-	# def get(request, user, form, list_id, word_id):
-	# 	pass
-
+logging.info("oi")
 
 class ListHandler(RESTHandler):
-	""" REST handler for Lists.
+	"""
+	REST handler for models.Lists.
 	The methods defined below and their respective mime-types are:
 		- create (JSON)
 		- getAll (HTML)
@@ -220,17 +171,33 @@ class ListHandler(RESTHandler):
 
 	# JSON
 	def update(request, user, form, list_id):
-		return change_list(request)
+		list = get_object_or_json404(List, id=list_id)
+
+		errors = []
+		list_form = ListForm(request.POST)
+		for arg in ('label', 'description'):
+			if arg in request.POST:
+				if list_form[arg].errors:
+					errors += list_form[arg].errors
+				else: 
+					setattr(list, arg, request.POST[arg])
+		if errors:
+			return JsonObject(success=False, errors=errors)
+		
+		list.save()
+		return JsonObject(success=True, text="list \'%s\' updated" % list.label)
 
 	# JSON
 	def delete(request, user, form, list_id):
-		pass
+		list = get_object_or_json404(List, id=list_id)
+		list.delete()
+		return JsonObject(success=True, text='list \'%s\' removed' % list.label)
 
 	# HTML
 	@render_to('listpage.html')
 	def get(request, user, form, list_id):
 		
-		list = get_object_or_404(List, id=list_id)
+		list = get_object_or_json404(List, id=list_id)
 		fields = {'created': 'date_created', 'modified': 'date_modified', 'word': 'word'}
 		if 'order_by' in request.GET:
 			value = request.GET['order_by']
@@ -247,141 +214,75 @@ class ListHandler(RESTHandler):
 		return {'words': words, 'parentlist': list, 'order_by': value}
  
 
-################################
+class WordHandler(RESTHandler):
+	"""
+	REST handler for models.Words.
+	The methods defined below and their respective mime-types are:
+		- create (JSON)
+		- getAll (HTML)
+		- update (JSON)
+		- get (HTML)
+		- delete (JSON)
+	"""
 
-@require_logged
-@require_args('label', 'description')
-@require_method('POST')
-def add_list(request):
+	objSpecifier = 'word_id'
+	requireLogged = True
 
-	user = User.objects.get(id=request.session['userid'])
-	
-	list_form = ListForm(request.POST)
-	if not list_form.is_valid():
-		errors = sum(list_form.errors.values(), [])
-		return JsonObject(success=False, errors=errors)
+	objectMap = {
+		'list_id': List
+	}
 
-	fields = dict()
-	for arg in ('label', 'description'):
-		fields[arg] = request.POST[arg]
+	# JSON
+	# @require_args('listid', 'word', 'meaning', 'origin')
+	def create(request, user, form, list_id):
+		list = get_object_or_json404(List, id=list_id)
+		
+		# test incoming data
+		word_form = WordForm(request.POST)
+		if not word_form.is_valid():
+			errors = sum(word_form.errors.values(), [])
+			return JsonObject(success=False, errors=errors)
+		
+		fields = dict()
+		for arg in ('word', 'meaning', 'origin'):
+			fields[arg] = request.POST[arg]
+		w = Word.objects.create(list=list, **fields)
 
-	l = List.objects.create(user=user, **fields)
+		return JsonObject(success=True, text='word \'%s\' added to \'%s\'' % (word_form['word'].value(), list.label), wordid=w.id)
 
-	return JsonObject(success=True, text='list \'%s\' created' % l.label, listid=l.id)
+	# HTML
+	# @render_to('listpage.html')
+	# def getAll(request, user, form):
+	# 	pass
 
+	# JSON
+	def update(request, user, form, list_id, word_id):
+		# passing listid and wordid is obligatory, but description and label are optional
+		list = get_object_or_json404(List, id=list_id)	
+		word = get_object_or_json404(Word, id=word_id, list=list)
 
-@require_logged
-@require_method('POST')
-@require_args('listid', 'label', 'description')
-def change_list(request):
-
-	user = User.objects.get(id=request.session['userid'])
-	l = List.objects.get_list(user, id=request.POST['listid'])
-	if not l:
-		return JsonObject(success=False, errors=['list not found',])
-
-	errors = []
-	list_form = ListForm(request.POST)
-	for arg in ('label', 'description'):
-		if arg in request.POST:
-			if list_form[arg].errors:
-				errors += list_form[arg].errors
-			else: 
-				setattr(l, arg, request.POST[arg])
-	if errors:
-		return JsonObject(success=False, errors=errors)
-	
-	l.save()
-	return JsonObject(success=True, text="list \'%s\' updated" % l.label)
-
-
-@require_logged
-@require_method('POST')
-@require_args('listid')
-def remove_list(request):
-	
-	user = User.objects.get(id=request.session['userid'])
-	l = List.objects.get_list(user, id=request.POST['listid'])
-
-	if not l:
-		return JsonObject(success=False, errors=['list not found',])
-
-	l.delete()
-	return JsonObject(success=True, text='list \'%s\' removed' % l.label)
-
-
-## WORDS
-
-@require_logged
-@require_method('POST')
-@require_args('listid', 'word', 'meaning', 'origin')
-def add_word(request, list_id):
-
-	user = User.objects.get(id=request.session['userid'])
-	l = List.objects.get_list(user, id=request.POST['listid'])
-	if not l:
-		return JsonObject(success=False, text='list not found')
-	
-	# test incoming data
-	word_form = WordForm(request.POST)
-	if not word_form.is_valid():
-		errors = sum(word_form.errors.values(), [])
-		return JsonObject(success=False, errors=errors)
-	
-	fields = dict()
-	for arg in ('word', 'meaning', 'origin'):
-		fields[arg] = request.POST[arg]
-	w = Word.objects.create(list=l, **fields)
-
-	return JsonObject(success=True, text='word \'%s\' added to \'%s\'' % (word_form['word'].value(), l.label), wordid=w.id)
+		errors = []
+		word_form = WordForm(request.POST)
+		for arg in ('word', 'meaning', 'origin'):
+			if arg in request.POST:
+				if word_form[arg].errors:
+					errors += word_form[arg].errors
+				else:
+					setattr(word, arg, request.POST[arg])
+		if errors:
+			return JsonObject(success=False, errors=errors)
+		
+		word.save()
+		return JsonObject(success=True, text="word '%s' updated" % word.word)
 
 
+	# JSON
+	def delete(request, user, form, list_id, word_id):
+		list = get_object_or_json404(List, id=list_id)	
+		word = get_object_or_json404(Word, id=word_id, list=list)
+		word.delete()
+		return JsonObject(success=True, text='word \'%s\' removed from %s ' % (word.word, list.label))
 
-
-@require_logged
-@require_method('POST')
-@require_args('wordid', 'listid')
-def change_word(request, list_id, word_id):
-	# passing listid and wordid is obligatory, but description and label are optional
-	
-	user = User.objects.get(id=request.session['userid'])
-	l = List.objects.get_list(user, id=request.POST['listid'])
-	if not l:
-		return JsonObject(success=False, errors=['list not found',])
-	w = Word.objects.get_word(l, id=request.POST['wordid'])
-	if not w:
-		return JsonObject(success=False, text='word doesn\'t exist')
-
-	errors = []
-	word_form = WordForm(request.POST)
-	for arg in ('word', 'meaning', 'origin'):
-		if arg in request.POST:
-			if word_form[arg].errors:
-				errors += word_form[arg].errors
-			else:
-				setattr(w, arg, request.POST[arg])
-	if errors:
-		return JsonObject(success=False, errors=errors)
-	
-	w.save()
-	return JsonObject(success=True, text="word '%s' updated" % w.word)
-
-
-@require_logged
-@require_method('POST')
-@require_args('wordid', 'listid')
-def remove_word(request):
-
-	user = User.objects.get(id=request.session['userid'])
-	l = List.objects.get_list(user, id=request.POST['listid'])
-
-	if not l:
-		return JsonObject(success=False, text='list not found')
-
-	w = Word.objects.get_word(l, id=request.POST['wordid'])
-	
-	if not w:
-		return JsonObject(success=False, text='word doens\'t exist.')
-
-	w.delete()
-	return JsonObject(success=True, text='word \'%s\' removed from %s ' % (w.word, l.label))
+	# HTML
+	# def get(request, user, form, list_id, word_id):
+	# 	pass
