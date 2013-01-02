@@ -13,6 +13,7 @@ from app.decorators import require_logged, require_not_logged, require_args, req
 # import re
 # import logging
 # import pdb
+from app.helpers import renderHTML, renderJSON
 
 
 # TODOs:
@@ -28,7 +29,7 @@ from app.decorators import require_logged, require_not_logged, require_args, req
 # text [text] => general text information // substitute by a messages list or smthg...
 # errors: [list] => shows errors associated with the call
 
-
+#! remove
 def JsonObject(**obj):
 	return HttpResponse(simplejson.dumps(obj))
 
@@ -38,7 +39,7 @@ def JsonObject(**obj):
 
 
 @require_not_logged
-@render_to('signin.html')
+@renderHTML('signin.html')
 def signin(request):
 
 	if request.method == 'GET':
@@ -57,16 +58,17 @@ def signin(request):
 	password = request.POST['password']
 
 	if User.objects.in_user_database(email=email):
-		return JsonObject(success=False, errors=["this email is already registered. haven't you signed up before?"])
+		return JsonObject(success=False,
+			errors=["this email is already registered. haven't you signed up before?"])
 	
 	u = User.objects.create(first_name=first_name, email=email, password=get_hash(password))
 	request.session['userid'] = u.id
-	return JsonObject(success=True, text='you\'re being signed in <img src="/static/images/loading.gif" />',
+	return JsonObject(success=True,
+			text='you\'re being signed in <img src="/static/images/loading.gif" />', 
 			redirect='/lists?welcome=0')
 
 
-@require_not_logged
-@render_to('login.html')
+@renderHTML('login.html')
 def login(request):
 	if request.method == 'GET':
 		return dict()
@@ -83,8 +85,9 @@ def login(request):
 		return JsonObject(success=False, errors=['invalid email/password combination'])
 	
 	request.session['userid'] = u.id
-	return JsonObject(success=True, text='you\'re being logged in <img src="/static/images/loading.gif" />',
-			redirect='/lists?welcome=1')
+	return JsonObject(success=True,
+		text='you\'re being logged in <img src="/static/images/loading.gif" />',
+		redirect='/lists?welcome=1')
 
 
 def logout(request):
@@ -100,12 +103,6 @@ def logout(request):
 
 # list and word API functions below (put in separate file?)
 
-# API calls
-
-# import logging
-# logger = logging.getLogger(__name__)
-
-
 # Python stuff
 from functools import wraps
 import logging
@@ -118,10 +115,11 @@ from app.models import User, List, Word, get_hash, UserForm, ListForm, WordForm
 from app.doREST import RESTHandler
 from app.helpers import RaisableRedirect, Json404 # Exceptions
 from app.helpers import get_user_or_404, get_object_or_json404
-from app.helpers import render_to
+from app.helpers import renderHTML, renderJSON
 
 
 logging.info("oi")
+
 
 class ListHandler(RESTHandler):
 	"""
@@ -137,21 +135,20 @@ class ListHandler(RESTHandler):
 	objSpecifier = 'list_id'
 	requireLogged = True
 
-	# JSON
+	@renderJSON
 	def create(request, user, form):
 		list_form = ListForm(form)
 		if not list_form.is_valid():
 			errors = sum(list_form.errors.values(), [])
-			return JsonObject(success=False, errors=errors)
+			return dict(success=False, errors=errors)
 
 		fields = dict()
 		for arg in ('label', 'description'):
 			fields[arg] = form[arg]
 		l = List.objects.create(user=user, **fields)
-		return JsonObject(success=True, text='list \'%s\' created' % l.label, listid=l.id)
+		return dict(success=True, text='list \'%s\' created' % l.label, listid=l.id)
 
-	# HTML
-	@render_to('listspanel.html')
+	@renderHTML('listspanel.html')
 	def getAll(request, user, form):
 		fields = {'created': 'date_created', 'modified': 'date_modified', 'listlabel': 'label'}
 
@@ -169,8 +166,8 @@ class ListHandler(RESTHandler):
 		lists = user.list_set.order_by('date_created') if not order else user.list_set.order_by(order)
 		return {'lists': lists, 'order_by': value}
 
-	# JSON
-	def update(request, user, form, list_id):
+	@renderJSON
+	def update(request, user, form, list):
 		list = get_object_or_json404(List, id=list_id)
 
 		errors = []
@@ -182,21 +179,19 @@ class ListHandler(RESTHandler):
 				else: 
 					setattr(list, arg, request.POST[arg])
 		if errors:
-			return JsonObject(success=False, errors=errors)
+			return dict(success=False, errors=errors)
 		
 		list.save()
-		return JsonObject(success=True, text="list \'%s\' updated" % list.label)
+		return dict(success=True, text="list \'%s\' updated" % list.label)
 
-	# JSON
+	@renderJSON
 	def delete(request, user, form, list_id):
 		list = get_object_or_json404(List, id=list_id)
 		list.delete()
-		return JsonObject(success=True, text='list \'%s\' removed' % list.label)
+		return dict(success=True, text='list \'%s\' removed' % list.label)
 
-	# HTML
-	@render_to('listpage.html')
+	@renderHTML('listpage.html')
 	def get(request, user, form, list_id):
-		
 		list = get_object_or_json404(List, id=list_id)
 		fields = {'created': 'date_created', 'modified': 'date_modified', 'word': 'word'}
 		if 'order_by' in request.GET:
@@ -212,7 +207,9 @@ class ListHandler(RESTHandler):
 		
 		words = list.word_set.order_by('date_created') if not order else list.word_set.order_by(order)
 		return {'words': words, 'parentlist': list, 'order_by': value}
- 
+
+
+
 
 class WordHandler(RESTHandler):
 	"""
@@ -225,14 +222,17 @@ class WordHandler(RESTHandler):
 		- delete (JSON)
 	"""
 
+	# @renderHTML('listpage.html')
+	# def getAll(request, user, form):
+	# 	pass
+	# def get(request, user, form, list_id, word_id):
+	# 	pass
+
+
 	objSpecifier = 'word_id'
 	requireLogged = True
 
-	objectMap = {
-		'list_id': List
-	}
-
-	# JSON
+	@renderJSON
 	# @require_args('listid', 'word', 'meaning', 'origin')
 	def create(request, user, form, list_id):
 		list = get_object_or_json404(List, id=list_id)
@@ -241,21 +241,20 @@ class WordHandler(RESTHandler):
 		word_form = WordForm(request.POST)
 		if not word_form.is_valid():
 			errors = sum(word_form.errors.values(), [])
-			return JsonObject(success=False, errors=errors)
+			return dict(success=False, errors=errors)
 		
 		fields = dict()
 		for arg in ('word', 'meaning', 'origin'):
 			fields[arg] = request.POST[arg]
 		w = Word.objects.create(list=list, **fields)
 
-		return JsonObject(success=True, text='word \'%s\' added to \'%s\'' % (word_form['word'].value(), list.label), wordid=w.id)
+		return {
+			'success': True,
+			'text': 'word \'%s\' added to \'%s\'' % (word_form['word'].value(), list.label),
+			'wordid': w.id
+		}
 
-	# HTML
-	# @render_to('listpage.html')
-	# def getAll(request, user, form):
-	# 	pass
-
-	# JSON
+	@renderJSON
 	def update(request, user, form, list_id, word_id):
 		# passing listid and wordid is obligatory, but description and label are optional
 		list = get_object_or_json404(List, id=list_id)	
@@ -270,19 +269,22 @@ class WordHandler(RESTHandler):
 				else:
 					setattr(word, arg, request.POST[arg])
 		if errors:
-			return JsonObject(success=False, errors=errors)
+			return dict(success=False, errors=errors)
 		
 		word.save()
-		return JsonObject(success=True, text="word '%s' updated" % word.word)
+		return {
+			'success': True,
+			'text': "word '%s' updated" % word.word
+		}
 
-
-	# JSON
+	@renderJSON
 	def delete(request, user, form, list_id, word_id):
 		list = get_object_or_json404(List, id=list_id)	
 		word = get_object_or_json404(Word, id=word_id, list=list)
 		word.delete()
-		return JsonObject(success=True, text='word \'%s\' removed from %s ' % (word.word, list.label))
+		
+		return {
+			'success': True,
+			'text': 'word \'%s\' removed from %s ' % (word.word, list.label)
+		}
 
-	# HTML
-	# def get(request, user, form, list_id, word_id):
-	# 	pass

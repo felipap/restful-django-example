@@ -11,18 +11,48 @@ from django.core.urlresolvers import reverse, NoReverseMatch
 # Project stuff
 from helpers import get_user_or_404, get_object_or_404
 from helpers import BadProgramming
+import models
 
 ##
+
+# Delete this?
+def fetch(**kwargs):
+	def decorator(method):
+		def wrapper(request, user, form, **urlFillers):
+			objs = []
+			for var in kwargs:
+				s_model, attr = var.rsplit('_', 1)
+				value = urlFillers[var]
+				try:
+					Model = getattr(models, s_model.capitalize())
+				except AttributeError:
+					raise BadProgramming, "Hey, kido. We've got a problem."
+				print get_object_or_404(Model, **{attr:value})
+
+			return method(request, user, form, **urlFillers)
+		return wrapper
+	return decorator
 
 class RESTHandler(object):
 	"""
 	Obs: The methods of the subclasses to handle the requests are all static.
 
-	#! document
-	objectMap:
+	#! document idea
+
 		objectMap = {
-			'modelA_id': ModelA
+			'word': ('list', 'word_id'), # => Word.objects.get(id=word_id, list=list)
+			'list': ('list_id')
 		}
+
+		decorator proposal
+		@fetch(list=(List, {'id': 'list_id'}), word=(Word, {'id': 'word_id', 'list': 'list'}))
+
+		def MM(cls_name, cls_parents, cls_attr):
+			print "MMM"*20, cls_attr
+			return type(cls_name, cls_parents, cls_attr)
+
+		__metaclass__ = MM
+
 	"""
 
 	# These don't act on an object in particular.	
@@ -67,18 +97,10 @@ class RESTHandler(object):
 			method_set = self.setActions
 			del urlFillers[self.objSpecifier]
 		
-		args.update(_process_fillers(urlFillers))
+		args.update(urlFillers)
 		method = getattr(self, method_set[request.method])
 		return method.im_func(**args)
 
-	def _process_fillers(urlFillers):
-		objs = []
-		for specifier in urlFillers:
-			model = objectMap.get(specifier)
-			if model:
-				name, attr = obj.rsplit('_', 1)
-				obj[name] = get_object_or_404(model, **{name:attr})
-		return objs
 
 	@staticmethod
 	def _get_form_data(request, method):

@@ -1,8 +1,15 @@
 # -*- coding: utf8 -*-
 
+# Python stuff
+from functools import wraps
+
 # Django stuff
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.core.context_processors import csrf
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.utils import simplejson
 
 # Project stuff
 from app.models import User
@@ -58,7 +65,7 @@ class RaisableRedirect(Exception):
 		else:
 			self.url = url
 
-
+# !
 class CustomMiddleware(object):
 	""" Custom middleware to catch custom exceptions by the application. """
 
@@ -69,9 +76,21 @@ class CustomMiddleware(object):
 			return redirect(exception.url)
 
 
-### 
-# source: https://bitbucket.org/offline/django-annoying/src/tip/annoying/decorators.py
-def render_to(template=None, mimetype=None):
+###
+
+def renderJSON(func):
+    """
+    Decorator to a view. Renders an object as json as returns as HttpResponse.
+    """
+    def wrapper(*args, **kwargs):
+        return HttpResponse(
+            simplejson.dumps(func(*args, **kwargs)),
+            mimetype="application/json")
+    return wrapper
+
+
+def renderHTML(template=None, mimetype=None):
+    # source: https://bitbucket.org/offline/django-annoying/src/tip/annoying/decorators.py
     """
     Decorator for Django views that sends returned dict to render_to_response 
     function.

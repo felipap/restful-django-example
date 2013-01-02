@@ -17,29 +17,22 @@ urlpatterns = patterns('',
     url(r'^signin/$', 'app.views.signin'),
     url(r'^logout/$', 'app.views.logout'),
 
-    # remove
-    # url(r'^lists/$', 'listspanel'), # lists panel for the user (template: listspanel.html)
-    # url(r'^lists/(?P<listname>[\w\d,. -]+)$(?!^lists/api$)', 'listpage'), # list page (template: listpage.html)
-
-    # action in ('add', 'change', 'removes')
-    # url(r'^api/lists/(?P<action>\w+)$', 'api_lists_redirect'),
-    # url(r'^api/words/(?P<action>\w+)$', 'api_words_redirect'),
-    url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT, 'show_indexes': True}),
+#    url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT, 'show_indexes': True}),
 )
 
 from app import views
 from app.views import ListHandler, WordHandler
 
-urlpatterns += patterns('',
-    url(r'^lists/(?P<list_id>[\w\d,. -]+)?$', ListHandler()),
-    url(r'^lists/(?P<list_id>[\w\d,. -]+)/words/(?P<word_id>[\w\d,. -]+)?$', WordHandler()),
-#        serveREST({'GET': views.listspanel, 'POST': views.add_list})),
-#    url(r'^lists/(?P<list_id>[\w\d,. -]+)$',
-#        serveREST({'GET': views.listpage, 'PUT': views.change_list, 'DELETE': views.remove_list})),
+REGEX_VARS = {
+    'list_id': '[\w\d,. -]+',
+    'word_id': '[\w\d,. -]+'
+}
 
-   # url(r'^lists/(?P<list_id>[\w\d,. -]+)/words',
-     #   serveREST({'POST': views.add_word})),
-    # url(r'^lists/(?P<listname>[\w\d,. -]+)/words/', )
+urlpatterns += patterns('',
+    url(r'^lists/(?P<list_id>{list_id})?$'.format(**REGEX_VARS),
+        ListHandler()),
+    url(r'^lists/(?P<list_id>{list_id})/words/(?P<word_id>{word_id})?$'.format(**REGEX_VARS),
+        WordHandler()),
 )
 
 urlpatterns += staticfiles_urlpatterns()
