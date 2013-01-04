@@ -1,5 +1,4 @@
-
-This is of my approach to a RESTful applications in django.
+This is my approach to a RESTful applications in django.
 
 Django doesn't really support the RESTful way natively.
 For example, the data passed to a PUT request isn't stored inside request.PUT
