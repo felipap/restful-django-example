@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+# for github.com/f03lipe
 
 # Python stuff
 from functools import wraps

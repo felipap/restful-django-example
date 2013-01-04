@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+# for github.com/f03lipe
 
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf.urls import patterns, include, url

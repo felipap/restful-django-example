@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# app/views.py
+# -*- coding: utf8 -*-
+# for github.com/f03lipe
 
 # Python stuff
 from functools import wraps
@@ -7,13 +7,13 @@ import logging
 import pdb
 
 # Django stuff
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 
 # Project stuff
 from app.models import User, List, Word, get_hash, UserForm, ListForm, WordForm
 from app.doREST import RESTBasicHandler, RESTHandler
 from app.helpers import RaisableRedirect, Json404 # Exceptions
-from app.helpers import get_user_or_404, get_object_or_json404
+from app.helpers import get_object_or_json404
 from app.helpers import renderHTML, renderJSON
 
 logging.info("oi")
@@ -39,7 +39,6 @@ def _setup_session(session, user):
 
 class LoginHandler(RESTBasicHandler):
 	""" Called when the user hits '/login' """
-
 	
 	def __call__(self, request, *args, **kwargs):
 		"""
@@ -63,8 +62,9 @@ class LoginHandler(RESTBasicHandler):
 		if not all((email, password)):
 			# Client-side error. Should not be possible by proper calls.
 			raise Json404
-		user = User.objects.get_user(email=email, password=password)
-		if not user:
+		try:
+			user = User.objects.get(email=email, password=get_hash(password))
+		except User.DoesNotExist:
 			raise Json404() #! Should the response be more specific?
 		_setup_session(request.session, user)
 		return {
@@ -105,7 +105,7 @@ class SignInHandler(RESTBasicHandler):
 		form = UserForm(form)
 		if not form.is_valid():
 			return {'success': False, 'errors': sum(form.errors.values(),[])}
-		if User.objects.in_user_database(email=email):
+		if User.objects.filter(email=email):
 			return {'success': False, 'errors': ['This email is already registered.']}
 
 		user = User.objects.create(

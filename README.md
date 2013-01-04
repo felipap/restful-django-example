@@ -11,7 +11,7 @@ wrappers to django (including [django-piston][1] and [toastdriven][2]), but they
 seemed too ugly or too complex to my specific case.
 
 All the other files beside app.doREST, app.helpers and app.views are mostly unaltered,
-so be careful not to wake up the monsters of terrifying programming...
+so...
 
 Todo:
 -----

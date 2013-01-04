@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+# for github.com/f03lipe
 """
 REST wrapper for the application.
 The basic usage of the classes defined in this file can be seen in app.views.
