@@ -137,18 +137,18 @@ class RESTHandler(RESTBasicHandler):
 		if urlFillers.get(self.objSpecifier):
 			# The request is object-specific: the action will take place on a 
 			# defined object of the set, specified by urlFillers[self.objSpecifier]
-			method_set = self.objActions
+			view_set = self.objActions
 		else:
-			method_set = self.setActions
+			view_set = self.setActions
 			del urlFillers[self.objSpecifier]
 		
 		args.update(urlFillers)
 		try:
-			view = getattr(self, self.actions[request.method])
-		except KeyError:
+			view = getattr(self, view_set[request.method])
+		except KeyError, AttributeError:
 			# Handler for such method was not defined.
 			raise Http404, "Invalid call."
 		except AttributeError:
 			# Handlers misconfigured/not coded.
-			raise BadProgramming, "I'd could do a better blindfolded!"
+			raise BadProgramming, "I'd could do a better job blindfolded!"
 		return view.im_func(**args)

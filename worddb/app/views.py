@@ -19,12 +19,11 @@ from app.helpers import renderHTML, renderJSON
 logging.info("oi")
 
 # TODOs:
-# implement log system
-# implementar salvar pelo comando Ctrl+S no browser
-# mudar nome do elemento '.list' em listspanel.html
-# add search to words
-# organize a tool box
-## organize 'search this word here' when meaning is empty
+# Get logging to work.
+# Save through Ctrl+S.
+# Rename css elements.
+# Add search to words.
+# Remove ugly toolbox.
 
 # JSON data convention:
 ## succes: 	True|False	=> indicates wheter the action succeded
@@ -40,6 +39,7 @@ def _setup_session(session, user):
 
 class LoginHandler(RESTBasicHandler):
 	""" Called when the user hits '/login' """
+
 	
 	def __call__(self, request, *args, **kwargs):
 		"""

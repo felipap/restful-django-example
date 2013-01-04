@@ -143,7 +143,6 @@ class User(models.Model):
 	first_name = models.CharField(max_length=20)
 	email = models.EmailField(unique=True)
 	password = models.CharField(max_length=56)
-
 	objects = UserManager() # custom manager
 
 	def save(self, *args, **kwargs): # !useless
@@ -161,10 +160,8 @@ class List(models.Model):
 	label = models.CharField(max_length=30)
 	user = models.ForeignKey(User)
 	description = models.CharField(max_length=140)
-
 	date_created = models.DateTimeField(auto_now_add=True)
 	date_modified = models.DateTimeField(auto_now=True)
-
 	objects = ListManager() # custom manager
 
 	def __unicode__(self):
@@ -178,15 +175,11 @@ class List(models.Model):
 class Word(models.Model):
 
 	word = models.CharField(max_length=30)
-
 	date_created = models.DateTimeField(auto_now_add=True)
 	date_modified = models.DateTimeField(auto_now=True)
-
 	origin = models.CharField(max_length=100, blank=True)
 	meaning = models.CharField(max_length=100, blank=True)
-	
 	list = models.ForeignKey(List)
-
 	objects = WordManager() # custom manager
 
 	def save(self, *args, **kwargs):

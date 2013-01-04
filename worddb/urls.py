@@ -5,14 +5,14 @@ from django.conf.urls import patterns, include, url
 # from django.contrib import admin
 # admin.autodiscover()
 
-from app.views import ListHandler, WordHandler, LoginHandler, SignInHandler
+from app.views import ListHandler, WordHandler, LoginHandler, SignInHandler, logout
 
 REGEX_VARS = {
     'list_id': '[\w\d,. -]+',
     'word_id': '[\w\d,. -]+'
 }
 
-urlpatterns += patterns('',
+urlpatterns = patterns('',
     url(r'^$',
         'django.views.generic.simple.redirect_to', {'url': 'login/'}),
     url(r'^signin/$',
