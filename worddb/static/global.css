@@ -235,6 +235,7 @@ a.tag.active { color: white; }
 			height: 20px;
 
 			float: right;
+			border-radius: 0;
 			text-align: justify;
 			display: inline;
 			

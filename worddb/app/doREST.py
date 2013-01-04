@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 """
-
+REST wrapper for the application.
+The basic usage of the classes defined in this file can be seen in app.views.
 """
 
 # Django sutff
@@ -13,31 +14,75 @@ from helpers import get_user_or_404, get_object_or_404
 from helpers import BadProgramming
 import models
 
-##
 
-# Delete this?
-def fetch(**kwargs):
-	def decorator(method):
-		def wrapper(request, user, form, **urlFillers):
-			objs = []
-			for var in kwargs:
-				s_model, attr = var.rsplit('_', 1)
-				value = urlFillers[var]
-				try:
-					Model = getattr(models, s_model.capitalize())
-				except AttributeError:
-					raise BadProgramming, "Hey, kido. We've got a problem."
-				print get_object_or_404(Model, **{attr:value})
+class RESTBasicHandler(object):
 
-			return method(request, user, form, **urlFillers)
-		return wrapper
-	return decorator
+	actions = {
+		'GET': 'get',
+		'PUT': 'put',
+		'POST': 'post',
+		'DELETE': 'delete',
+	}
 
-class RESTHandler(object):
+	def __call__(self, request, **urlFillers):
+		""" Called each time a request is fired to the url.
+			Obs: urlFillers are the variables set by the regex configuration
+			in the urls.py file.
+		"""
+
+		try:
+			view = getattr(self, self.actions[request.method])
+		except KeyError:
+			# Handler for such method was not defined.
+			raise Http404, "Invalid call."
+		except AttributeError:
+			# Handlers misconfigured/not coded.
+			raise BadProgramming, "My mama codes better than you!"
+		form = self._get_form_data(request, request.method)
+		return view.im_func(request, form, **urlFillers)
+
+
+	@staticmethod
+	def _get_form_data(request, method):
+		""" Get data sent through the request. One way or another.
+			
+			The RESTful philosophy was not fully applied to django yet: data
+			sent through PUT requests isn't stored as in POST or GET ones. The
+			solution I found was implemented in django-piston, a wrapper for
+			RESTful apps using django. It basically fakes a POST request and
+			then calls request._load_post_and_files to fill up request.POST with
+			the sent data.
+
+			Please check out their documented code.
+			https://bitbucket.org/jespern/django-piston/src/c4b2d21db51a/piston/utils.py#cl-154
+		"""
+
+		try:
+			return getattr(request, method)
+		except AttributeError:
+			if hasattr(request, '_post'):
+				del request._post
+				del request._files
+			try:
+				request.method = "POST"
+				request._load_post_and_files()
+				request.method = method # "PUT"
+			except AttributeError:
+				request.META['REQUEST_METHOD'] = 'POST'
+				request._load_post_and_files()
+				request.META['REQUEST_METHOD'] = method # 'PUT'
+	
+			setattr(request, method, request.POST)
+			return request.POST
+
+
+
+class RESTHandler(RESTBasicHandler):
 	"""
 	Obs: The methods of the subclasses to handle the requests are all static.
 
-	#! document idea
+	#! document idea for automatic fetcher
+	# thought approaches
 
 		objectMap = {
 			'word': ('list', 'word_id'), # => Word.objects.get(id=word_id, list=list)
@@ -80,7 +125,7 @@ class RESTHandler(object):
 
 	def __call__(self, request, **urlFillers):
 		""" Called each time a request is fired to the url.
-			Obs: urlFillers are those variables set by the regex configuration
+			Obs: urlFillers are the variables set by the regex configuration
 			in the urls.py file.
 		"""
 		args = dict()
@@ -99,73 +144,11 @@ class RESTHandler(object):
 		
 		args.update(urlFillers)
 		try:
-			method = getattr(self, method_set[request.method])
-		except KeyError, AttributeError:
+			view = getattr(self, self.actions[request.method])
+		except KeyError:
 			# Handler for such method was not defined.
 			raise Http404, "Invalid call."
-		return method.im_func(**args)
-
-
-	@staticmethod
-	def _get_form_data(request, method):
-		""" Get data sent through the request. One way or another.
-			
-			The RESTful philosophy was not fully applied to django yet: data
-			sent through PUT requests isn't stored as in POST or GET ones. The
-			solution I found was implemented in django-piston, a wrapper for
-			RESTful apps using django. It basically fakes a POST request and
-			then calls request._load_post_and_files to fill up request.POST with
-			the sent data.
-
-			Please check out their documented code.
-			https://bitbucket.org/jespern/django-piston/src/c4b2d21db51a/piston/utils.py#cl-154
-		"""
-
-		try:
-			return getattr(request, method)
 		except AttributeError:
-			if hasattr(request, '_post'):
-				del request._post
-				del request._files
-			try:
-				request.method = "POST"
-				request._load_post_and_files()
-				request.method = method # "PUT"
-			except AttributeError:
-				request.META['REQUEST_METHOD'] = 'POST'
-				request._load_post_and_files()
-				request.META['REQUEST_METHOD'] = method # 'PUT'
-	
-			setattr(request, method, request.POST)
-			return request.POST
-
-
-##
-
-
-
-# from django.template import RequestContext, loader
-# from django.conf import settings
-# from django.core.exceptions import PermissionDenied
-# from django.http import HttpResponseForbidden  
-
-# def render_to_Json404(*args, **kwargs):     
-# 	"""     
-# 		Returns a HttpResponseForbidden whose content is filled with the result of calling     
-# 		django.template.loader.render_to_string() with the passed arguments.     
-# 	"""     
-# 	if not isinstance(args,list):         
-# 		args = []         
-# 		args.append('403.html')              
-
-# 	httpresponse_kwargs = {'mimetype': kwargs.pop('mimetype', None)}          
-# 	response = HttpResponseForbidden(loader.render_to_string(*args, **kwargs), **httpresponse_kwargs)              
-
-# 	return response
-
-# class Json404Middleware(object):     
-# 	def process_exception(self,request,exception):         
-# 		if isinstance(exception,Http403):             
-# 			if settings.DEBUG:                 
-# 				raise PermissionDenied             
-# 			return render_to_Json404(context_instance=RequestContext(request))
+			# Handlers misconfigured/not coded.
+			raise BadProgramming, "I'd could do a better blindfolded!"
+		return view.im_func(**args)

@@ -7,13 +7,16 @@ from functools import wraps
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.core.context_processors import csrf
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.utils import simplejson
 
 # Project stuff
 from app.models import User
 
+
+
+## HELPERS
 
 def get_user_or_404(request):
 	""" Attempt to get the user object or redirect to logout. """
@@ -65,18 +68,20 @@ class RaisableRedirect(Exception):
 		else:
 			self.url = url
 
-# !
+#! redirection occuring?
 class CustomMiddleware(object):
 	""" Custom middleware to catch custom exceptions by the application. """
 
 	def process_exception(self, request, exception):
 		if isinstance(exception, Json404):
-			return HttpResponse("{404, tá?}")
+			return HttpResponse(simplejson.dumps({
+                ''
+                }), mimetype="application/json")
 		elif isinstance(exception, RaisableRedirect):
 			return redirect(exception.url)
 
 
-###
+### Decorators for rendering
 
 def renderJSON(func):
     """

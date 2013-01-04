@@ -87,7 +87,7 @@ function signin() {
 		success: function (data, status) {
 			console.log('data received', data);
 			if (data['success']) {
-				show_flash_message(data['text']);
+				show_flash_message('you\'re being signed in <img src="/static/images/loading.gif" />');
 				setTimeout(function () { location.replace(data['redirect']); }, 2000);
 			} else 
 				for (var i=0; i<data['errors'].length; i++)
