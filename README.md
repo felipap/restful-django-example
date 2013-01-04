@@ -14,6 +14,7 @@ All the other files beside app.doREST, app.helpers and app.views are mostly unal
 so be careful not to wake up the monsters of terrifying programming...
 
 Todo:
+-----
 * Implement auto variable fetcher for the Handlers views.
 
   [1]: https://bitbucket.org/jespern/django-piston/wiki/Home "django-piston"
