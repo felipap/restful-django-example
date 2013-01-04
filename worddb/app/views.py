@@ -41,9 +41,13 @@ def JsonObject(**obj):
 @require_not_logged
 @renderHTML('signin.html')
 def signin(request):
+	#!
+	if request.session.get('userid'):
+		return redirect('/lists')
 
 	if request.method == 'GET':
 		return dict()
+
 
 	for arg in ('first_name', 'email', 'password'):
 		if not arg in request.POST: # method is post, but argument not found
@@ -70,6 +74,9 @@ def signin(request):
 
 @renderHTML('login.html')
 def login(request):
+	if request.session.get('userid'):
+		return redirect('/lists')
+
 	if request.method == 'GET':
 		return dict()
 	
@@ -118,18 +125,12 @@ from app.helpers import get_user_or_404, get_object_or_json404
 from app.helpers import renderHTML, renderJSON
 
 
-logging.info("oi")
+#! logging.info("oi")
 
 
 class ListHandler(RESTHandler):
 	"""
 	REST handler for models.Lists.
-	The methods defined below and their respective mime-types are:
-		- create (JSON)
-		- getAll (HTML)
-		- update (JSON)
-		- get (HTML)
-		- delete (JSON)
 	"""
 
 	objSpecifier = 'list_id'
@@ -141,7 +142,7 @@ class ListHandler(RESTHandler):
 		if not list_form.is_valid():
 			errors = sum(list_form.errors.values(), [])
 			return dict(success=False, errors=errors)
-
+# 
 		fields = dict()
 		for arg in ('label', 'description'):
 			fields[arg] = form[arg]
@@ -150,26 +151,12 @@ class ListHandler(RESTHandler):
 
 	@renderHTML('listspanel.html')
 	def getAll(request, user, form):
-		fields = {'created': 'date_created', 'modified': 'date_modified', 'listlabel': 'label'}
-
-		if 'order_by' in request.GET:
-			value = request.GET['order_by']
-			if value in fields:
-				order = fields[value]
-			elif value[0] == '-' and value[1:] in fields:
-				order = '-'+fields[value[1:]]
-			# fail silently
-		else:
-			order = None
-			value = None
-		
-		lists = user.list_set.order_by('date_created') if not order else user.list_set.order_by(order)
-		return {'lists': lists, 'order_by': value}
+		lists = user.list_set.order_by('date_modified')
+		return {'lists': lists}
 
 	@renderJSON
-	def update(request, user, form, list):
+	def update(request, user, form, list_id):
 		list = get_object_or_json404(List, id=list_id)
-
 		errors = []
 		list_form = ListForm(request.POST)
 		for arg in ('label', 'description'):
@@ -193,41 +180,15 @@ class ListHandler(RESTHandler):
 	@renderHTML('listpage.html')
 	def get(request, user, form, list_id):
 		list = get_object_or_json404(List, id=list_id)
-		fields = {'created': 'date_created', 'modified': 'date_modified', 'word': 'word'}
-		if 'order_by' in request.GET:
-			value = request.GET['order_by']
-			if value in fields:
-				order = fields[value]
-			elif value[0] == '-' and value[1:] in fields:
-				order = '-'+fields[value[1:]]
-			# fail silently
-		else:
-			order = None
-			value = None
-		
-		words = list.word_set.order_by('date_created') if not order else list.word_set.order_by(order)
-		return {'words': words, 'parentlist': list, 'order_by': value}
-
+		words = list.word_set.order_by('date_modified')
+		return {'words': words, 'parentlist': list}
 
 
 
 class WordHandler(RESTHandler):
 	"""
 	REST handler for models.Words.
-	The methods defined below and their respective mime-types are:
-		- create (JSON)
-		- getAll (HTML)
-		- update (JSON)
-		- get (HTML)
-		- delete (JSON)
 	"""
-
-	# @renderHTML('listpage.html')
-	# def getAll(request, user, form):
-	# 	pass
-	# def get(request, user, form, list_id, word_id):
-	# 	pass
-
 
 	objSpecifier = 'word_id'
 	requireLogged = True
@@ -256,7 +217,6 @@ class WordHandler(RESTHandler):
 
 	@renderJSON
 	def update(request, user, form, list_id, word_id):
-		# passing listid and wordid is obligatory, but description and label are optional
 		list = get_object_or_json404(List, id=list_id)	
 		word = get_object_or_json404(Word, id=word_id, list=list)
 

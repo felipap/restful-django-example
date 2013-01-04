@@ -35,12 +35,9 @@
 			<div><b>order by:</b>
 			<select>
 				<option value="created">created (oldest to newest)</option>
-				<option value="-created">created (newest to oldest)</option>
 				<option value="modified">modified (oldest to newest)</option>
-				<option value="-modified">modified (newest to oldest)</option>
-				<option value="listlabel">list label</option>
-				<option value="-listlabel">list label - inversed</option>
-			
+				<option value="name">list name</option>
+
 				<script>
 				var options = document.querySelectorAll('.orderby-box select option');
 				for (var i=0; i < options.length; i++)
@@ -82,11 +79,32 @@ _csrf_token = '{{csrf_token}}';
 
 //
 
-var lists = [
-{% for list in lists %}
-	{'label': '{{list.label}}', 'description': '{{list.description}}', 'listid': '{{list.id }}', },
-{% endfor %}
-];
+var lists = [{% for list in lists %}{label:'{{list.label}}',description:'{{list.description}}',listid:'{{list.id }}',created_on:'{{list.date_created.isoformat}}',last_modified:'{{list.date_modified.isoformat}}',},{% endfor %}];
+
+function getSortFunc () {
+	function getURLParameter (name) {
+	    return decodeURI(
+	        (RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]
+	    );
+	}
+	switch (getURLParameter('order_by')) {
+		case 'created':
+			return (function (a, b) {
+				return new Date(a.created_on) > new Date(b.created_on) ? 1 : -1; 
+			});
+		case 'modified':
+		return (function (a, b) {
+				return new Date(a.last_modified) > new Date(b.last_modified) ? 1 : -1; 
+			});
+		case 'null':
+		case 'name':
+		default:
+			return (function (a, b) {
+				return a.label.toLowerCase() > b.label.toLowerCase() ? 1 : -1;
+			});
+	}
+}
+
 
 var list_tag_html = '<li class="list" data-label="${label}" data-description="${description}" data-listid="${listid}">\
 			<div tabindex="0" onClick="goto_list(this.parentElement.dataset[\'listid\'])" class="tag primary-tag">\
@@ -96,10 +114,13 @@ var list_tag_html = '<li class="list" data-label="${label}" data-description="${
 		</li>';
 
 (function() {
-	if (!lists[0]) show_no_tags_message("» no lists found");
-	else
+	if (!lists[0])
+		show_no_tags_message("» no lists found");
+	else {
+		lists = $(lists).sort(getSortFunc());
 		for (var i=0; i<lists.length; i++)
 			add_list_tag(lists[i]);
+	}
 })();
 
 

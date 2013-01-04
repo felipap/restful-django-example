@@ -144,10 +144,9 @@ function add_word_db(edit_wrapper, parentid, csrf_token) { // adds a word to the
 		form[item] = edit_wrapper.querySelector("[data-field="+item+"] .edit-field-value").value;
 	});
 	form['listid'] = parentid;
-	console.log("oi");
 
 	$.ajax({
-		url: window.location.href+'/words', // gambiarra?
+		url: window.location.pathname+'/words/', // gambiarra?
 		context: this,
 		data: form,
 		type: 'PUT',
@@ -181,10 +180,10 @@ function update_word_db(edit_wrapper, parentid, csrf_token) { // updates the wor
 	form['csrfmiddlewaretoken'] = csrf_token;
 
 	$.ajax({
-		url: window.location.href+'/words/'+form['wordid'], 
+		url: window.location.pathname+'/words/'+form['wordid'], 
 		context: this,
 		data: form,
-		type: 'post',
+		type: 'POST',
 		dataType: 'json',
 		beforeSend: function (xhr) {
 			xhr.setRequestHeader("X-CSRFToken", csrf_token);
@@ -212,7 +211,7 @@ function remove_word_db(edit_wrapper, parentid, csrf_token) { // removes the wor
 	form['csrfmiddlewaretoken'] = csrf_token;
 
 	$.ajax({
-		url: window.location.href+'/words/'+form['wordid'], 
+		url: window.location.pathname+'/words/'+form['wordid'], 
 		context: this, 
 		data: form,
 		type: 'DELETE',

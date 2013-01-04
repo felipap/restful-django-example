@@ -4,7 +4,7 @@
 """
 
 # Django sutff
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import redirect
 from django.core.urlresolvers import reverse, NoReverseMatch
 
@@ -98,7 +98,11 @@ class RESTHandler(object):
 			del urlFillers[self.objSpecifier]
 		
 		args.update(urlFillers)
-		method = getattr(self, method_set[request.method])
+		try:
+			method = getattr(self, method_set[request.method])
+		except KeyError, AttributeError:
+			# Handler for such method was not defined.
+			raise Http404, "Invalid call."
 		return method.im_func(**args)
 
 
