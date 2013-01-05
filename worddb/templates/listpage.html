@@ -2,30 +2,23 @@
 
 <html>
 <head>
-
 	<meta http-equiv="content-type" content="text/ html;charset=utf-8" />
 	<title>words in '{{ parentlist.label }}'</title>
 
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-	<script src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js" type="text/javascript"></script>
 	<scrSipt type="text/javascript" src="https://raw.github.com/GBKS/Wookmark-jQuery/master/jquery.wookmark.js"></script>
+	<script type="text/javascript" src="https://raw.github.com/janl/mustache.js/master/mustache.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+	<script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/static/jquery-autoresize.js"></script>
+	<script type="text/javascript" src="/static/function.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="/static/bootstrap/css/bootstrap.min.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/global.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/buttons.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/main.css"></link>
 
-	<script src="/static/js/bootstrap.js" type="text/javascript"></script>
-	<script src="/static/js/jquery-autoresize.js" type="text/javascript"></script>
-	<script src="/static/js/function.js" type="text/javascript"></script>
-
-<style type="text/css">
-
-@import url(/static/cssreset.css);
-@import url(/static/bootstrap.css);
-@import url(/static/buttons.css);
-@import url(/static/global.css);
-
-</style>
 </head>
-
-<!-- BODY -->
-<body>
+<body class="words">
 
 	<div style="display: inline-block">
 		<h2 style="display: inline; font-weight: lighter;">{{ parentlist.label }}</h2>
@@ -58,7 +51,7 @@
 			<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
 		</div>
 		<!-- /ORDERBY -->
-		<button class="green styled-button" onClick="make_add_word_box()">Add Word</button>
+		<button class="green styled-button" onClick="addWord({'list': {{parentlist.id}}})">Add Word</button>
 	</div>
 
 	<div id="div-wrapper">
@@ -69,153 +62,58 @@
 		<a href="/account">account panel</a> | <a href="/about">about this app</a> | <a href="/logout">logout</a>
 	</footer>
 
-	<div id="blackout" style="display: none"></div>
 
-<!-- ####SCRIPT#### -->
+<script type="text/template" id="edit-box">
+	<div id="edit-wrapper" class="styled-box">
+		<form onsubmit="return false;" data-id="[[id]]">
+			<input type="hidden" name="id" value="[[id]]" />
+			<input type="hidden" name="list" value="{{parentlist.id}}" />
+			<div title="close" class="close-button" onClick="hideEditWrapper()"></div>
+			<h2 class="box-title">Edit a Word:</h2>
+			<div class="edit-field">
+				<div class="edit-field-label">word:</div>
+				<textarea autofocus name="word" class="edit-field-value">[[word]]</textarea>
+				<div class="field-meaning" style="display: none"></div>
+			</div>
+			<div class="edit-field">
+				<div class="edit-field-label">meaning:</div>
+				<textarea name="meaning" class="edit-field-value">[[meaning]]</textarea>
+			</div>
+			<div class="edit-field">
+				<div class="edit-field-label">origin:</div>
+				<textarea name="origin" class="edit-field-value">[[origin]]</textarea>
+			</div>
+			<button id="b1" class="edit-button button blue unselectable" onClick="[[B1.func]](this.parentElement)">[[B1.label]]</button>
+			<button id="b2" class="edit-button button red unselectable"	onClick="[[B2.func]](this.parentElement)">[[B2.label]]</button> //!
+		</form>
+		<div id="blackout"></div>
+	</div>
+</script>
+
+<script type="text/template" id="word-tag-html">
+	<li class="word wrapper">
+		<a href="#" class="tag" onClick="editWord(this.parentElement); return false;">
+			<span class="word-word">[[word]]</span>
+		</a>
+		<div class="attached-info">
+			<b>meaning</b>: [[meaning]]
+		</div>
+	</li>
+</script>
+
 <script type="text/javascript">
 
-_csrf_token = '{{ csrf_token }}';
 
-{% for msg in flash_messages %}
-	show_flash_message('{{ msg }}', {'background': '#0FB05E'}, 8000+{{ forloop.counter }}*1000);
-{% endfor %}
-
-{% for error in flash_errors %}
-	show_flash_message('{{ error }}', {'background': '#FB3F51'}, 8000+{{ forloop.counter }}*1000);
-{% endfor %}
-
-//
-
-var words = [
-{% for word in words %}{% spaceless %}
-{word:'{{word.word}}',origin:'{{word.origin|escapejs}}',meaning:'{{word.meaning|escapejs}}',wordid:'{{word.id}}',created_on:'{{word.date_created.isoformat}}',last_modified:'{{word.date_modified.isoformat}}'},
-{% endspaceless %}{% endfor %}
-];
-
-
-var word_tag_html = '<li class="word wrapper" data-word="${word}" data-meaning="${meaning}" data-origin="${origin}" data-wordid="${wordid}">\
-	<a href="#" class="tag" onClick="make_edit_word_box(this.parentElement); return false;">\
-		<span class="word-word">${word}</span>\
-	</a>\
-	<div class="attached-info">\
-		<b>meaning</b>: \'${meaning}\'\
-		</div>\
-	</li>';
-
-
-function getSortFunc () {
-	function getURLParameter (name) {
-	    return decodeURI(
-	        (RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]
-	    );
-	}
-	switch (getURLParameter('order_by')) {
-		case 'created':
-			return (function (a, b) {
-				return new Date(a.created_on) > new Date(b.created_on) ? 1 : -1; 
-			});
-		case 'modified':
-		return (function (a, b) {
-				return new Date(a.last_modified) > new Date(b.last_modified) ? 1 : -1; 
-			});
-		case 'null':
-		case 'word':
-		default:
-			return (function (a, b) {
-				return a.word.toLowerCase() > b.word.toLowerCase() ? 1 : -1;
-			});
-	}
-}
-
-(function() {
-	if (!words[0])
-		show_no_tags_message("» no words found");
-	else {
-		words = $(words).sort(getSortFunc());
-		for (var i=0; i<words.length; i++)
-			add_word_tag(words[i]);
-	}
-	// $("ul.tags-wrapper li").wookmark({offset: 10, container: $('ul#words-wrapper')[0]});
-})();
-
-//
-
-
-function add_word_tag(form) { // adds a word tag to the words list in the html
-	if (document.body.querySelector('ul.tags-wrapper #no-tags-message'))
-		$("ul.tags-wrapper #no-tags-message").remove();
-	$.tmpl(word_tag_html, form).appendTo('ul#words-wrapper');
-}
-
-
-function update_word_tag(form) {
-	var p = document.body.querySelector('li.word[data-wordid="'+form['wordid']+'"]');
-	$(p).html($.tmpl(word_tag_html, form));
-}
-
-
-function remove_word_tag(form) {
-	var tag = document.body.querySelector("li.word[data-wordid='"+form['wordid']+"']");
-	$(tag).fadeOut(function () {
-		$(this).remove();
-		if (!document.body.querySelector("ul.words-wrapper li"))
-			show_no_tags_message("» no words found");
-	})
-}
-
-
-
-// HTML for Edit/Add-Word boxes
-var edit_word_box_html = '<div id="edit-wrapper" class="styled-box" data-wordid="${wordid}">\
-	<div title="close" class="close-button" onClick="remove_edit_word_box()"></div>\
-	<h2 class="box-title">Edit a Word:</h2>\
-	<div class="edit-field" data-field="word">\
-		<div class="edit-field-label">word:</div>\
-		<textarea class="edit-field-value">${word}</textarea>\
-	</div>\
-	\
-	<div class="edit-field" data-field="meaning">\
-		<div class="edit-field-label">meaning:</div>\
-		<textarea class="edit-field-value">${meaning}</textarea>\
-	</div>\
-	\
-	<div class="edit-field" data-field="origin">\
-		<div class="edit-field-label">origin:</div>\
-		<textarea class="edit-field-value">${origin}</textarea>\
-	</div>\
-	\
-	<button class="edit-button button blue unselectable" id="save-button"\
-			onClick="update_word_db(this.parentElement, {{parentlist.id}}, _csrf_token)">Save</button>\
-	<button class="edit-button button red unselectable" id="remove-button"\
-			onClick="remove_word_db(this.parentElement, {{parentlist.id}}, _csrf_token)">Remove</button>\
-	';
-
-var add_word_box_html = '<div id="edit-wrapper" class="styled-box">\
-	<div title="close" class="close-button" onClick="remove_add_word_box()"></div>\
-	<div class="box-title">Add a Word:</div>\
-	<div class="edit-field" data-field="word">\
-		<div class="edit-field-label">word:</div>\
-		<textarea class="edit-field-value"></textarea>\
-	</div>\
-	\
-	<div class="edit-field" data-field="meaning">\
-		<div class="edit-field-label">meaning:</div>\
-		<textarea class="edit-field-value"></textarea>\
-	</div>\
-	\
-	<div class="edit-field" data-field="origin">\
-		<div class="edit-field-label">origin:</div>\
-		<textarea class="edit-field-value"></textarea>\
-	</div>\
-	\
-	<button class="edit-button button blue unselectable" id="add-button"\
-			onClick="add_word_db(this.parentElement, {{parentlist.id}}, \'{{csrf_token}}\')">Add Word</button>\
-	<button class="edit-button button red unselectable" id="cancel-button"\
-			onClick="remove_add_word_box()">Cancel</button>\
-	';
+	window._csrf_token = '{{ csrf_token }}';
+	window._listid = {{parentlist.id}};
+	window.wordpinHTML = $("script#word-tag-html")[0].innerHTML;
+	window.words = {{serialized_words|safe}};
+	window.getSortFunc = makeSortFuncGetter({
+			'created':	function (obj) { return new Date(obj.created_on); },
+			'modified': function (obj) { return new Date(obj.last_modified); },
+		}, function (obj) { return obj.word.toLowerCase(); })
 
 
 </script>
-
 </body>
 </html>

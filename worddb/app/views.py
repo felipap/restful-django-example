@@ -14,7 +14,7 @@ from app.models import User, List, Word, get_hash, UserForm, ListForm, WordForm
 from app.doREST import RESTBasicHandler, RESTHandler
 from app.helpers import RaisableRedirect, Json404 # Exceptions
 from app.helpers import get_object_or_json404
-from app.helpers import renderHTML, renderJSON
+from app.helpers import renderHTML, renderJSON, toJson
 
 logging.info("oi")
 
@@ -24,6 +24,7 @@ logging.info("oi")
 # Rename css elements.
 # Add search to words.
 # Remove ugly toolbox.
+# I have aligned them!
 
 # JSON data convention:
 ## succes: 	True|False	=> indicates wheter the action succeded
@@ -61,7 +62,7 @@ class LoginHandler(RESTBasicHandler):
 		password = form.get('password')
 		if not all((email, password)):
 			# Client-side error. Should not be possible by proper calls.
-			raise Json404
+			raise Json404({'success': False, 'errors': ['Please fill all fields.']})
 		try:
 			user = User.objects.get(email=email, password=get_hash(password))
 		except User.DoesNotExist:
@@ -98,9 +99,11 @@ class SignInHandler(RESTBasicHandler):
 		email = form.get('email')
 		password = form.get('password')
 
+		print form
+
 		if not all((name, email, password)):
 			# Client-side error. Should not be possible by proper calls.
-			raise Json404
+			raise Json404({'success': False, 'errors': ['Please fill all fields.']})
 
 		form = UserForm(form)
 		if not form.is_valid():
@@ -143,13 +146,18 @@ class ListHandler(RESTHandler):
 		fields = dict()
 		for arg in ('label', 'description'):
 			fields[arg] = form[arg]
-		l = List.objects.create(user=user, **fields)
-		return dict(success=True, text='list \'%s\' created' % l.label, listid=l.id)
+		list = List.objects.create(user=user, **fields)
+		return {
+			'success': True,
+			'text': 'list \'%s\' created' % list.label,
+			'listid': list.id,
+			'object': toJson(list),
+		}
 
 	@renderHTML('listspanel.html')
 	def getAll(request, user, form):
-		lists = user.list_set.order_by('date_modified')
-		return {'lists': lists}
+		lists = toJson(*user.list_set.order_by('date_modified'))
+		return {'serialized_lists': lists}
 
 	@renderJSON
 	def update(request, user, form, list_id):
@@ -166,20 +174,28 @@ class ListHandler(RESTHandler):
 			return dict(success=False, errors=errors)
 		
 		list.save()
-		return dict(success=True, text="list \'%s\' updated" % list.label)
+		return {
+			'success': True,
+			'text': "list \'%s\' updated" % list.label,
+			'object': toJson(list),
+		}
 
 	@renderJSON
 	def delete(request, user, form, list_id):
 		list = get_object_or_json404(List, id=list_id)
 		list.delete()
-		return dict(success=True, text='list \'%s\' removed' % list.label)
+		json = toJson(list)
+		return {
+			'success': True,
+			'text': 'list \'%s\' removed' % list.label,
+			'object': json,
+		}
 
 	@renderHTML('listpage.html')
 	def get(request, user, form, list_id):
 		list = get_object_or_json404(List, id=list_id)
-		words = list.word_set.order_by('date_modified')
-		return {'words': words, 'parentlist': list}
-
+		words = toJson(*list.word_set.order_by('date_modified'))
+		return {'serialized_words': words, 'parentlist': list}
 
 
 class WordHandler(RESTHandler):
@@ -204,12 +220,12 @@ class WordHandler(RESTHandler):
 		fields = dict()
 		for arg in ('word', 'meaning', 'origin'):
 			fields[arg] = form[arg]
-		w = Word.objects.create(list=list, **fields)
-
+		word = Word.objects.create(list=list, **fields)
 		return {
 			'success': True,
 			'text': 'word \'%s\' added to \'%s\'' % (word_form['word'].value(), list.label),
-			'wordid': w.id
+			'wordid': word.id,
+			'object': toJson(word),
 		}
 
 	@renderJSON
@@ -231,17 +247,20 @@ class WordHandler(RESTHandler):
 		word.save()
 		return {
 			'success': True,
-			'text': "word '%s' updated" % word.word
+			'text': "word '%s' updated" % word.word,
+			'object': toJson(word),
 		}
 
 	@renderJSON
 	def delete(request, user, form, list_id, word_id):
 		list = get_object_or_json404(List, id=list_id)	
 		word = get_object_or_json404(Word, id=word_id, list=list)
+		json = toJson(word)
 		word.delete()
 		
 		return {
 			'success': True,
-			'text': 'word \'%s\' removed from %s ' % (word.word, list.label)
+			'text': 'word \'%s\' removed from %s ' % (word.word, list.label),
+			'object': json,
 		}
 

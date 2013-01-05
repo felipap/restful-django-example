@@ -40,7 +40,6 @@ a:hover { color: #222; }
 /******************/
 
 html {
-	background: url(/static/images/bg.png);
 	font-family: "Trebuchet MS", sans-serif;
 	font-size: 13px;
 }
@@ -57,7 +56,8 @@ textarea, input {
 #blackout {
 	position: fixed; top: 0; bottom: 0; left: 0; right: 0; 
 	background: black; 
-	opacity: .6; }
+	opacity: .6;
+}
 
 
 footer {
@@ -178,14 +178,18 @@ a.tag.active { color: white; }
 
 .styled-box {
 	position: absolute;
-	background: rgba(64,64,64, 1);
+	background: rgba(120,120,120, 1);
 	padding: 20px;
 	border-radius: 12px; /* try to match close-button radius */
 	text-align: left;
-
 	width: 600px;
 	top: 15%; left: 50%;
 	margin-left: -300px;
+}
+
+.styled-box form {
+	z-index: 1000;
+	position: relative;
 }
 
 .styled-box .close-button, .styled-box .edit-field {
@@ -243,7 +247,7 @@ a.tag.active { color: white; }
 			overflow: hidden; }
 		.styled-box .edit-field-value:focus { outline: 3px solid #00A287; }
 
-		.styled-box .edit-field .field-info {
+		.styled-box .edit-field .field-meaning {
 			position: relative;
 			background: #00a12b;
 			margin: 0 -25px;
@@ -254,13 +258,13 @@ a.tag.active { color: white; }
 			
 			border: 1px solid #444;
 			text-shadow: #333 0px 0px 2px; }
-		.styled-box .edit-field .field-info a {
+		.styled-box .edit-field .field-meaning a {
 			text-shadow: 0;
 			color: white;
 			font-weight: bold;
 		}
-		.styled-box .edit-field .field-info a:hover { text-decoration: underline; }
-		.styled-box .edit-field .field-info.error { background: #c60018; }
+		.styled-box .edit-field .field-meaning a:hover { text-decoration: underline; }
+		.styled-box .edit-field .field-meaning.error { background: #c60018; }
 
 .styled-box.login-box { width: 370px; left: 50%; margin-left: -205px; padding: 15px;}
 .styled-box.login-box .edit-field { margin-top: 5; }

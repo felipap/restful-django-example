@@ -1,0 +1,55 @@
+
+body.login,
+body.singin {
+	text-align: center;
+}
+
+body.login .wrapper,
+body.sigin .wrapper {
+	position: relative;
+	display: table;
+
+	margin: 0 auto;
+	top: 150px;
+	background: rgba(254, 254, 254, 0.2);
+
+	padding: 20px;
+	border-radius: 15px;
+	box-shadow: 0 0 5px rgba(0, 0, 0, .3);
+	sborder: 1px solid #aaa;
+}
+
+#blackout {
+	position: fixed;
+	top: 0; bottom: 0; left: 0; right: 0; 
+	background: rgba(0, 0, 0, .6);
+	z-index: 1;
+}
+
+.tags-wrapper {
+	border: 1px solid black;
+}
+
+/****/
+
+
+#flash-messages-wrapper {
+	position: fixed;
+	top: 5px;
+	z-index: 10001;
+	right: 5px;
+	text-align: right; }
+
+	#flash-messages-wrapper li {
+		background: #ddd;
+		padding: 10px 15px;
+		color: #666;
+		cursor: pointer;
+		font-size: 15px;
+		font-weight: lighter;
+		margin-bottom: 5px;
+		border: 1px solid #aaa;
+		text-shadow: #aaa 0px 1px 1px;
+		display: block;
+		clear: both;
+		float: right; }

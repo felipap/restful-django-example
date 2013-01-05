@@ -45,9 +45,9 @@ class ListForm(forms.Form):
 
 
 class WordForm(forms.Form):
-	word = forms.CharField(max_length=30, error_messages={
+	word = forms.CharField(max_length=60, error_messages={
 		'required':'invalid word. choose at least 1 character.',
-		'max_length':'word is too long. choose at most 30 characters.'
+		'max_length':'word is too long. choose at most 60 characters.'
 	})
 	meaning = forms.CharField(required=False, max_length=100, error_messages={
 		'max_length':'meaning is too long. choose at most 100 characters.'

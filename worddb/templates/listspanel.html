@@ -2,30 +2,23 @@
 
 <html>
 <head>
-
 	<meta http-equiv="content-type" content="text/ html;charset=utf-8" />
 	<title>Panel of Lists</title>
 
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-	<script src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js" type="text/javascript"></script>
+	<script type="stext/javascript" src="https://raw.github.com/GBKS/Wookmark-jQuery/master/jquery.wookmark.js"></script>
+	<script type="text/javascript" src="https://raw.github.com/janl/mustache.js/master/mustache.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+	<script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/static/jquery-autoresize.js"></script>
+	<script type="text/javascript" src="/static/function.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="/static/bootstrap/css/bootstrap.min.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/global.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/buttons.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/main.css"></link>
 
-	<script src="/static/js/bootstrap.js" type="text/javascript"></script>
-	<script src="/static/js/jquery-autoresize.js" type="text/javascript"></script>
-	<script src="/static/js/function.js" type="text/javascript"></script>
-
-<style type="text/css">
-
-@import url(/static/cssreset.css);
-@import url(/static/bootstrap.css);
-@import url(/static/buttons.css);
-@import url(/static/global.css);
-
-</style>
 </head>
-
-<!-- BODY -->
-
-<body>
+<body class="lists">
 
 	<h2>Lists Panel</h2>
 	
@@ -51,12 +44,11 @@
 			<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
 		</div>
 		<!-- /ORDERBY -->
-		<button class="styled-button blue" onClick="make_add_list_box()">Add List</button>
+		<button class="styled-button blue" onClick="addList()">Add List</button>
 	</div>
 
 
 	<ul class="tags-wrapper lists-wrapper"></ul>
-
 
 	<footer>
 		<a href="/account">account panel</a> | <a href="/about">about this app</a> | <a href="/logout">logout</a>
@@ -64,130 +56,55 @@
 
 	<div id="blackout" style="display: none"></div>
 
-<!-- ####SCRIPT#### -->
-<script type="text/javascript">
 
-_csrf_token = '{{csrf_token}}';
+<script type="text/template" id="edit-box">
+	<div id="edit-wrapper" class="styled-box">
+		<form onsubmit="return false;" data-id="[[id]]">
+			<input type="hidden" name="id" value="[[id]]" />
+			<div title="close" class="close-button" onClick="hideEditWrapper()"></div>
+			<h2 class="box-title">Edit a List:</h2>
 
-{% for msg in flash_messages %}
-	show_flash_message('{{ msg }}', {'border': '1px solid #0FB05E'}, 8000+{{ forloop.counter }}*1000);
-{% endfor %}
+			<div class="edit-field" data-field="label">
+				<div class="edit-field-label">list name:</div>
+				<textarea autofocus name="label" class="edit-field-value">[[label]]</textarea>
+			</div>
 
-{% for error in flash_errors %}
-	show_flash_message('{{ error }}', {'background': '#FB3F51'}, 8000+{{ forloop.counter }}*1000);
-{% endfor %}
+			<div class="edit-field" data-field="description">
+				<div class="edit-field-label">description:</div>
+				<textarea name="description" class="edit-field-value">[[description]]</textarea>
+			</div>
 
-//
-
-var lists = [{% for list in lists %}{label:'{{list.label}}',description:'{{list.description}}',listid:'{{list.id }}',created_on:'{{list.date_created.isoformat}}',last_modified:'{{list.date_modified.isoformat}}',},{% endfor %}];
-
-function getSortFunc () {
-	function getURLParameter (name) {
-	    return decodeURI(
-	        (RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]
-	    );
-	}
-	switch (getURLParameter('order_by')) {
-		case 'created':
-			return (function (a, b) {
-				return new Date(a.created_on) > new Date(b.created_on) ? 1 : -1; 
-			});
-		case 'modified':
-		return (function (a, b) {
-				return new Date(a.last_modified) > new Date(b.last_modified) ? 1 : -1; 
-			});
-		case 'null':
-		case 'name':
-		default:
-			return (function (a, b) {
-				return a.label.toLowerCase() > b.label.toLowerCase() ? 1 : -1;
-			});
-	}
-}
-
-
-var list_tag_html = '<li class="list" data-label="${label}" data-description="${description}" data-listid="${listid}">\
-			<div tabindex="0" onClick="goto_list(this.parentElement.dataset[\'listid\'])" class="tag primary-tag">\
-				<span class="list-label">${label}</span>\
-				<button class="edit-button" onClick="make_edit_list_box(this.parentElement.parentElement); event.stopPropagation();">edit</button>\
-			</div>\
-		</li>';
-
-(function() {
-	if (!lists[0])
-		show_no_tags_message("» no lists found");
-	else {
-		lists = $(lists).sort(getSortFunc());
-		for (var i=0; i<lists.length; i++)
-			add_list_tag(lists[i]);
-	}
-})();
-
-
-// 
-
-function add_list_tag(form) {
-	if (document.body.querySelector('ul.tags-wrapper #no-tags-message'))
-		$("ul.tags-wrapper #no-tags-message").remove();
-	$.tmpl(list_tag_html, form).appendTo('ul.lists-wrapper');
-}
-
-
-function update_list_tag(form) {
-	var p = document.body.querySelector("li.list[data-listid='"+form['listid']+"']");
-	$(p).html($.tmpl(list_tag_html, form));
-}
-
-
-function remove_list_tag(form) {
-	var tag = document.body.querySelector("li.list[data-listid='"+form['listid']+"']");
-	$(tag).fadeOut(function () {
-		$(this).remove();
-		if (!document.body.querySelector("ul.tags-wrapper li")) // add 'no tags' message?
-			show_no_tags_message("» no lists found");
-	})
-}
-
-
-
-// HTML for Edit/Add-List boxes
-var edit_list_box_html = '<div id="edit-wrapper" class="styled-box" data-listid="${listid}">\
-		<div title="close" class="close-button" onClick="remove_edit_list_box()"></div>\
-	    <h2 class="box-title">Edit a List:</h2>\
-		\
-		<div class="edit-field" data-field="label">\
-			<div class="edit-field-label">list name:</div>\
-			<textarea class="edit-field-value">${label}</textarea>\
-		</div>\
-		\
-		<div class="edit-field" data-field="description">\
-			<div class="edit-field-label">description:</div>\
-			<textarea class="edit-field-value">${description}</textarea>\
-		</div>\
-		\
-		<button class="edit-button button blue unselectable" id="save-button" onClick="update_list_db(this.parentElement, _csrf_token)">Save</button>\
-		<button class="edit-button button red unselectable" id="remove-button" onClick="remove_list_db(this.parentElement, _csrf_token)">Remove</button>\
-	</div>',
-
-	add_list_box_html = '<div id="edit-wrapper" class="styled-box">\
-		<div title="close" class="close-button" onClick="remove_add_list_box()"></div>\
-		<h2 class="box-title">Add a List:</h2>\
-		\
-		<div class="edit-field" data-field="label">\
-			<div class="edit-field-label">list name:</div>\
-			<textarea class="edit-field-value"></textarea>\
-		</div>\
-		\
-		<div class="edit-field" data-field="description">\
-			<div class="edit-field-label">description:</div>\
-			<textarea class="edit-field-value"></textarea>\
-		</div>\
-		\
-		<button class="edit-button button blue unselectable" id="add-button" onClick="add_list_db(this.parentElement, _csrf_token)">Create List</button>\
-		<button class="edit-button button red unselectable" id="cancel-button" onClick="remove_add_word_box()">Cancel</button>\
-	</div>';
-
+			<button id="b1" class="edit-button button blue unselectable" onClick="[[B1.func_call]]">[[B1.label]]</button>
+			<button id="b2" class="edit-button button red unselectable" onClick="[[B2.func_call]]">[[B2.label]]</button>
+		</form>
+		<div id="blackout"></div>
+	</div>
 </script>
 
+<script type="text/template" id="list-tag-html">
+	<li class="list" data-label="[[label]]" data-description="[[description]]" data-id="[[id]]">
+		<div tabindex="0" onClick="location.href='/lists/'+parentElement.dataset['id']" class="tag primary-tag">
+			<span class="list-label">[[label]]</span>
+			<button class="edit-button" onClick="event.stopPropagation(); editList(this.parentElement.parentElement); ">edit</button>
+		</div>
+	</li>
+</script>
+
+
+<script type="text/javascript">
+
+(function () {
+
+	window._csrf_token = '{{csrf_token}}';
+	window.listpinHTML = $("script#list-tag-html")[0].innerHTML;
+	window.lists = {{serialized_lists|safe}};
+	window.getSortFunc = makeSortFuncGetter({
+			'created':	function (obj) { return new Date(obj.created_on); },
+			'modified': function (obj) { return new Date(obj.last_modified); },
+		}, function (obj) { return obj.label.toLowerCase(); })
+
+})();
+
+</script>
 </body>
 </html>

@@ -132,6 +132,7 @@ class RESTHandler(RESTBasicHandler):
 		args = dict()
 		args['request'] = request
 		args['form'] = self._get_form_data(request, request.method)
+		print args['form']
 		if self.requireLogged:
 			args['user'] = get_user_or_404(request)
 		
@@ -146,7 +147,7 @@ class RESTHandler(RESTBasicHandler):
 		args.update(urlFillers)
 		try:
 			view = getattr(self, view_set[request.method])
-		except KeyError, AttributeError:
+		except KeyError:
 			# Handler for such method was not defined.
 			raise Http404, "Invalid call."
 		except AttributeError:
