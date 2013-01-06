@@ -183,8 +183,8 @@ class ListHandler(RESTHandler):
 	@renderJSON
 	def delete(request, user, form, list_id):
 		list = get_object_or_json404(List, id=list_id)
-		list.delete()
 		json = toJson(list)
+		list.delete()
 		return {
 			'success': True,
 			'text': 'list \'%s\' removed' % list.label,

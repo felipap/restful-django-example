@@ -13,90 +13,73 @@
 	<script type="text/javascript" src="/static/function.js"></script>
 	
 	<link rel="stylesheet" type="text/css" href="/static/bootstrap/css/bootstrap.min.css"></link>
-	<link rel="stylesheet" type="text/css" href="/static/global.css"></link>
-	<link rel="stylesheet" type="text/css" href="/static/buttons.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/sglobal.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/Sbuttons.css"></link>
 	<link rel="stylesheet" type="text/css" href="/static/main.css"></link>
 
 </head>
 <body class="words">
 
-	<div style="display: inline-block">
-		<h2 style="display: inline; font-weight: lighter;">{{ parentlist.label }}</h2>
-		{% if parentlist.description %}
-		<h4 style="display: inline; font-weight: lighter; color: #666">« {{ parentlist.description }} »</h4>
-		{% endif %}
-		| <a href="/">back to lists</a>
-	</div>
-	<h5>last modified in: {{ parentlist.date_modified }}</h5>
-	
+	<h2 class="header">
+		Words inside '{{ parentlist.label }}' <a href="/logout" class="btn btn-link">Logout</a><a href="/lists" class="btn btn-link">Back to Lists</a>
+	</h2>
 
-	<div>
-		<!-- ORDERBY -->
-		<div class="orderby-box">
-			<div><b>order by:</b>
-			<select>
-				<option value="created">created (oldest to newest)</option>
-				<option value="modified">modified (oldest to newest)</option>
-				<option value="word">word label</option>			
-				<script>
-				var options = document.querySelectorAll('.orderby-box select option');
-				for (var i=0; i < options.length; i++)
-					if (options[i].value === '{{ order_by }}') {
-						options[i].selected = true;
-						break;
-					}
-				</script>
-			</select>
-			</div>
-			<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
-		</div>
-		<!-- /ORDERBY -->
-		<button class="green styled-button" onClick="addWord({'list': {{parentlist.id}}})">Add Word</button>
+	<div class="well well-large">
+		<form class="inline-form form-horizontal">
+			<label><h4>Change word ordering</h4></label>
+			<select name="order_by">
+				<option value="name">Order by name</option>
+				<option value="created">Order by time created (oldest to newest)</option>
+				<option value="modified">Order by time modified (oldest to newest)</option>
+			</select>		
+			<button class="btn btn-info" type="submit">Go</button>
+		</form>
+		<button class="btn btn-success" onClick="addWord()"><strong>Create Word</strong></button>
 	</div>
 
-	<div id="div-wrapper">
-	<ul id="words-wrapper" class="tags-wrapper words-wrapper"></ul>
-	</div>
-	
-	<footer>
-		<a href="/account">account panel</a> | <a href="/about">about this app</a> | <a href="/logout">logout</a>
-	</footer>
-
+	<ul class="tags-wrapper"></ul>
 
 <script type="text/template" id="edit-box">
-	<div id="edit-wrapper" class="styled-box">
-		<form onsubmit="return false;" data-id="[[id]]">
+	<div id="edit-wrapper" class="edit-wrapper styled-box">
+		<form class="form-horizontal" onsubmit="return false;" data-id="[[id]]">
 			<input type="hidden" name="id" value="[[id]]" />
 			<input type="hidden" name="list" value="{{parentlist.id}}" />
-			<div title="close" class="close-button" onClick="hideEditWrapper()"></div>
-			<h2 class="box-title">Edit a Word:</h2>
-			<div class="edit-field">
-				<div class="edit-field-label">word:</div>
-				<textarea autofocus name="word" class="edit-field-value">[[word]]</textarea>
-				<div class="field-meaning" style="display: none"></div>
+
+			<button class="close" onClick="hideEditWrapper()">&times;</button>
+			<h2 class="box-title">Edit a List:</h2>
+
+			<div class="control-group">
+				<label class="control-label">word:</label>
+				<div class="controls">
+					<textarea autofocus name="word" class="input-large">[[word]]</textarea>
+				</div>
 			</div>
-			<div class="edit-field">
-				<div class="edit-field-label">meaning:</div>
-				<textarea name="meaning" class="edit-field-value">[[meaning]]</textarea>
+			
+			<div class="control-group">
+				<label class="control-label">meaning:</label>
+				<div class="controls">
+					<textarea name="meaning" class="input-large">[[meaning]]</textarea>
+				</div>
 			</div>
-			<div class="edit-field">
-				<div class="edit-field-label">origin:</div>
-				<textarea name="origin" class="edit-field-value">[[origin]]</textarea>
+
+			<div class="control-group">
+				<label class="control-label">origin:</label>
+				<div class="controls">
+					<textarea name="origin" class="input-large">[[origin]]</textarea>
+				</div>
 			</div>
-			<button id="b1" class="edit-button button blue unselectable" onClick="[[B1.func]](this.parentElement)">[[B1.label]]</button>
-			<button id="b2" class="edit-button button red unselectable"	onClick="[[B2.func]](this.parentElement)">[[B2.label]]</button> //!
+
+			<button id="b1" class="btn btn-success unselectable" onClick="[[B1.func]](this.parentElement)"><strong>[[B1.label]]</strong></button>
+			<button id="b2" class="btn btn-danger unselectable" onClick="[[B2.func]](this.parentElement)">[[B2.label]]</button>
 		</form>
 		<div id="blackout"></div>
 	</div>
 </script>
 
 <script type="text/template" id="word-tag-html">
-	<li class="word wrapper">
-		<a href="#" class="tag" onClick="editWord(this.parentElement); return false;">
-			<span class="word-word">[[word]]</span>
-		</a>
-		<div class="attached-info">
-			<b>meaning</b>: [[meaning]]
+	<li class="pin word" tabindex="0" onClick="editWord(this)">
+		<div class="tag primary-tag">
+			[[word]]
 		</div>
 	</li>
 </script>

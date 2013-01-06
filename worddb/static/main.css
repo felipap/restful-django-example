@@ -19,6 +19,11 @@ body.sigin .wrapper {
 	sborder: 1px solid #aaa;
 }
 
+body.words .header,
+body.lists .header {
+	margin-left: 30px;
+}
+
 #blackout {
 	position: fixed;
 	top: 0; bottom: 0; left: 0; right: 0; 
@@ -27,7 +32,72 @@ body.sigin .wrapper {
 }
 
 .tags-wrapper {
-	border: 1px solid black;
+	display: table;
+}
+
+body.lists .tags-wrapper .pin {
+
+}
+
+.tags-wrapper .pin {
+	position: relative;
+	display: inline-block;
+	background: #08C;
+	padding: 13px;
+	margin: 10px;
+	width: 200px;
+
+	cursor: pointer;
+	color: white;
+	text-shadow: 0 0 5px rgba(0, 0, 0, .3);
+	font-weight: bold;
+	box-shadow: 0 0 3px rgba(0, 0, 0, 1);
+
+	-moz-user-select: -moz-none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.tags-wrapper .pin:active {
+	top: 1px;
+}
+
+.tags-wrapper .edit-button {
+	right: 10px;
+	top: 10px;
+	position: absolute;	
+}
+
+
+/****/
+
+.edit-wrapper {
+	position: absolute;
+	z-index: 1000;
+	top: 15%;
+	right: 50%;
+	margin-right: -300px;
+	width: 600px;
+}
+
+.edit-wrapper form {
+	position: relative;
+	z-index: 1001;
+	background: white;
+	border-radius: 10px;
+	box-shadow: 0 0 10px #555;
+	padding: 20px;
+}
+
+.edit-wrapper textarea.input-large {
+	width: 350px;
+}
+
+.edit-wrapper .close {
+	position: relative;
+	top: -8px;
+	right: -5px;
 }
 
 /****/

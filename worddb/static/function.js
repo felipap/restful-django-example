@@ -43,7 +43,7 @@ function makeSortFuncGetter (obj, fallback) {
 			return decodeURI((RegExp("" + name + "=(.+?)(&|$)").exec(location.search) || [null, null])[1]);
 		};
 		var ordering = getURLParameter('order_by');
-		console.log('ordering', ordering);
+		console.log('ordering:', ordering);
 		for (value in obj) {
 			if (obj.hasOwnProperty(value)) {
 				if (value == ordering)
@@ -118,7 +118,7 @@ function flash_message(message, customcss, delay) { // implement callback?
 		$(document.body).append('<ul id="flash-messages-wrapper"></ul>');
 
 	obj.click(function () { $(this).stop().slideUp(); });
-	obj.hide().appendTo('#flash-messages-wrapper').fadeIn().delay(delay).slideUp();
+	obj.hide().appendTo('#flash-messages-wrapper').fadeIn().delay(delay).slideUp(function(){ obj.remove() });
 }
 
 function flash_error(message, customcss, delay) {
@@ -273,7 +273,7 @@ window.onload = function () {
 			update: objPinUpdater('word', wordpinHTML),
 			delete: objPinRemover('word')
 		}
-		
+
 		wordDb = {
 			create: makeApiCaller('create', 'words', '/lists/[[list]]/words',		 objPinCreator('word', wordpinHTML)),
 			update: makeApiCaller('update', 'words', '/lists/[[list]]/words/[[id]]', objPinUpdater('word', wordpinHTML)),
@@ -315,6 +315,7 @@ function objPinCreator (objname, html) {
 function objPinUpdater (objname, html) {
 	return function (data) {	
 		var pin = $("."+objname+"[data-id='"+data.id+"']");
+		pa = pin;
 		for (p in data) {
 			if (data.hasOwnProperty(p)) {
 				pin[0].dataset[p] = data[p];
@@ -326,6 +327,7 @@ function objPinUpdater (objname, html) {
 
 function objPinRemover (objname) {
 	return function (data) {
+		console.log('d', data)
 		var pin = $(".list[data-id='"+data.id+"']");
 		pin.fadeOut(function () {
 			pin.remove();

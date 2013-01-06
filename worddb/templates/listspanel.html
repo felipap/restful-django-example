@@ -13,79 +13,67 @@
 	<script type="text/javascript" src="/static/function.js"></script>
 	
 	<link rel="stylesheet" type="text/css" href="/static/bootstrap/css/bootstrap.min.css"></link>
-	<link rel="stylesheet" type="text/css" href="/static/global.css"></link>
-	<link rel="stylesheet" type="text/css" href="/static/buttons.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/Sbuttons.css"></link>
 	<link rel="stylesheet" type="text/css" href="/static/main.css"></link>
 
 </head>
 <body class="lists">
 
-	<h2>Lists Panel</h2>
-	
-	<div>
-		<!-- ORDERBY -->
-		<div class="orderby-box">
-			<div><b>order by:</b>
-			<select>
-				<option value="created">created (oldest to newest)</option>
-				<option value="modified">modified (oldest to newest)</option>
-				<option value="name">list name</option>
+	<h2 class="header">
+		Your lists<a href="/logout" class="btn btn-link">Logout</a></h2>
+	</h2>
 
-				<script>
-				var options = document.querySelectorAll('.orderby-box select option');
-				for (var i=0; i < options.length; i++)
-					if (options[i].value === '{{ order_by }}') {
-						options[i].selected = true;
-						break;
-					}
-				</script>
-			</select>
-			</div>
-			<button class="styled-button red small" onClick="location.replace('?order_by='+$('.orderby-box select').val())">Order</button>
-		</div>
-		<!-- /ORDERBY -->
-		<button class="styled-button blue" onClick="addList()">Add List</button>
+	<div class="well well-large">
+		<form class="inline-form form-horizontal">
+			<label><h4>Change list ordering</h4></label>
+			<select name="order_by">
+				<option value="name">Order by name</option>
+				<option value="created">Order by time created (oldest to newest)</option>
+				<option value="modified">Order by time modified (oldest to newest)</option>
+			</select>		
+			<button class="btn btn-info" type="submit">Go</button>
+		</form>
+		<button class="btn btn-success" onClick="addList()"><strong>Create List</strong></button>
 	</div>
 
-
-	<ul class="tags-wrapper lists-wrapper"></ul>
-
-	<footer>
-		<a href="/account">account panel</a> | <a href="/about">about this app</a> | <a href="/logout">logout</a>
-	</footer>
-
-	<div id="blackout" style="display: none"></div>
+	<ul class="tags-wrapper"></ul>
 
 
 <script type="text/template" id="edit-box">
-	<div id="edit-wrapper" class="styled-box">
-		<form onsubmit="return false;" data-id="[[id]]">
+	<div id="edit-wrapper" class="edit-wrapper styled-box">
+		<form class="form-horizontal" onsubmit="return false;" data-id="[[id]]">
 			<input type="hidden" name="id" value="[[id]]" />
-			<div title="close" class="close-button" onClick="hideEditWrapper()"></div>
+
+			<button class="close" onClick="hideEditWrapper()">&times;</button>
 			<h2 class="box-title">Edit a List:</h2>
 
-			<div class="edit-field" data-field="label">
-				<div class="edit-field-label">list name:</div>
-				<textarea autofocus name="label" class="edit-field-value">[[label]]</textarea>
+			<div class="control-group">
+				<label class="control-label">list name:</label>
+				<div class="controls">
+					<textarea autofocus name="label" class="input-large">[[label]]</textarea>
+				</div>
 			</div>
 
-			<div class="edit-field" data-field="description">
-				<div class="edit-field-label">description:</div>
-				<textarea name="description" class="edit-field-value">[[description]]</textarea>
+			<div class="control-gorup">
+				<label class="control-label">description:</label>
+				<div class="controls">
+					<textarea name="description" class="input-large">[[description]]</textarea>
+				</div>
 			</div>
 
-			<button id="b1" class="edit-button button blue unselectable" onClick="[[B1.func_call]]">[[B1.label]]</button>
-			<button id="b2" class="edit-button button red unselectable" onClick="[[B2.func_call]]">[[B2.label]]</button>
+			<button id="b1" class="btn btn-success unselectable" onClick="[[B1.func]](this.parentElement)"><strong>[[B1.label]]</strong></button>
+			<button id="b2" class="btn btn-danger unselectable" onClick="[[B2.func]](this.parentElement)">[[B2.label]]</button>
 		</form>
 		<div id="blackout"></div>
 	</div>
 </script>
 
 <script type="text/template" id="list-tag-html">
-	<li class="list" data-label="[[label]]" data-description="[[description]]" data-id="[[id]]">
-		<div tabindex="0" onClick="location.href='/lists/'+parentElement.dataset['id']" class="tag primary-tag">
-			<span class="list-label">[[label]]</span>
-			<button class="edit-button" onClick="event.stopPropagation(); editList(this.parentElement.parentElement); ">edit</button>
+	<li class="pin list" tabindex="0" onClick="location.href='/lists/'+this.dataset['id']"
+		data-label="[[label]]" data-description="[[description]]" data-id="[[id]]">
+		<div class="tag primary-tag">
+			<span>[[label]]</span>
+			<button class="btn btn-small btn-success edit-button" onClick="event.stopPropagation(); editList(this.parentElement.parentElement); "><strong>edit</strong></button>
 		</div>
 	</li>
 </script>
