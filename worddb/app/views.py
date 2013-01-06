@@ -28,8 +28,8 @@ logging.info("oi")
 
 # JSON data convention:
 ## succes: 	True|False	=> indicates wheter the action succeded
-## text:	[text]		=> general text information #! substitute by a list or smthg...
-## errors: 	[list]		=> shows errors associated with the call
+## messages:[msg, ]		=> general text information #! substitute by a list or smthg...
+## errors: 	[msg, ]		=> shows errors associated with the call
 
 
 def _setup_session(session, user):
@@ -148,10 +148,10 @@ class ListHandler(RESTHandler):
 			fields[arg] = form[arg]
 		list = List.objects.create(user=user, **fields)
 		return {
-			'success': True,
-			'text': 'list \'%s\' created' % list.label,
-			'listid': list.id,
-			'object': toJson(list),
+			'success': 	True,
+			'messages': ['list \'%s\' created' % list.label],
+			'listid': 	list.id,
+			'object':	toJson(list),
 		}
 
 	@renderHTML('listspanel.html')
@@ -175,9 +175,9 @@ class ListHandler(RESTHandler):
 		
 		list.save()
 		return {
-			'success': True,
-			'text': "list \'%s\' updated" % list.label,
-			'object': toJson(list),
+			'success': 	True,
+			'messages': ["list \'%s\' updated" % list.label],
+			'object': 	toJson(list),
 		}
 
 	@renderJSON
@@ -186,9 +186,9 @@ class ListHandler(RESTHandler):
 		json = toJson(list)
 		list.delete()
 		return {
-			'success': True,
-			'text': 'list \'%s\' removed' % list.label,
-			'object': json,
+			'success': 	True,
+			'messages': ['list \'%s\' removed' % list.label],
+			'object': 	json,
 		}
 
 	@renderHTML('listpage.html')
@@ -222,10 +222,10 @@ class WordHandler(RESTHandler):
 			fields[arg] = form[arg]
 		word = Word.objects.create(list=list, **fields)
 		return {
-			'success': True,
-			'text': 'word \'%s\' added to \'%s\'' % (word_form['word'].value(), list.label),
-			'wordid': word.id,
-			'object': toJson(word),
+			'success': 	True,
+			'messages': ['word \'%s\' added to \'%s\'' % (word_form['word'].value(), list.label)],
+			'wordid': 	word.id,
+			'object': 	toJson(word),
 		}
 
 	@renderJSON
@@ -246,9 +246,9 @@ class WordHandler(RESTHandler):
 		
 		word.save()
 		return {
-			'success': True,
-			'text': "word '%s' updated" % word.word,
-			'object': toJson(word),
+			'success': 	True,
+			'messages': ["word '%s' updated" % word.word],
+			'object': 	toJson(word),
 		}
 
 	@renderJSON
@@ -259,8 +259,8 @@ class WordHandler(RESTHandler):
 		word.delete()
 		
 		return {
-			'success': True,
-			'text': 'word \'%s\' removed from %s ' % (word.word, list.label),
-			'object': json,
+			'success': 	True,
+			'messages': ['word \'%s\' removed from %s ' % (word.word, list.label)],
+			'object': 	json,
 		}
 

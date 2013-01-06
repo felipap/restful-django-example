@@ -63,29 +63,6 @@ function makeSortFuncGetter (obj, fallback) {
 	}
 }
 
-
-if (typeof(String.prototype.trim) === "undefined") {
-	String.prototype.trim = function() {
-        return String(this).replace(/^\s+|\s+$/g, '');
-    };
-}
-
-if (typeof(String.prototype.capitalize) === "undefined") {
-	String.prototype.capitalize = function() {
-		return String(this).replace(/\w\S*/g, function(t){return t.charAt(0).toUpperCase()+t.substr(1);})
-	}
-}
-
-$.ctrl = function(key, callback, args) {
-	$(document).keydown(function(e) {
-		if(!args) args=[]; // IE barks when args is null
-		if(e.keyCode == key.charCodeAt(0) && e.ctrlKey) {
-			callback.apply(this, args);
-			return false;
-		}
-	});
-};
-
 $.fn.serializeObject = function () {
 	var obj = {};
 	$.each($(this).serializeArray(), function (index, item) {
@@ -94,9 +71,34 @@ $.fn.serializeObject = function () {
 	return obj;
 }
 
+
+if (typeof(String.prototype.capitalize) === "undefined") {
+	String.prototype.capitalize = function() {
+		return String(this).replace(/\w\S*/g, function(t){return t.charAt(0).toUpperCase()+t.substr(1);})
+	}
+}
+
+/*****************************/
+
+// if (typeof(String.prototype.trim) === "undefined") {
+// 	String.prototype.trim = function() {
+//         return String(this).replace(/^\s+|\s+$/g, '');
+//     };
+// }
+
+// $.ctrl = function(key, callback, args) {
+// 	$(document).keydown(function(e) {
+// 		if(!args) args=[]; // IE barks when args is null
+// 		if(e.keyCode == key.charCodeAt(0) && e.ctrlKey) {
+// 			callback.apply(this, args);
+// 			return false;
+// 		}
+// 	});
+// };
+
+
 // of global usage
 var flash_message_html = "<li class='flash-message'></li>";
-var no_tags_message_html = '<h4 id="no-tags-message" style="margin: 10px 10px; color: #666; font-size: 14px;"></h4>';
 
 function show_errors (messages) {
 	console.warn(messages);
@@ -132,22 +134,20 @@ function goto_list(listname) { window.location.href = '/lists/'+encodeURI(listna
 function open_link(link) { window.open(link); return false; }
 
 
-function show_no_tags_message(message) {
-	$(no_tags_message_html)
-		.html(message)
-			.hide()
-				.appendTo('ul.tags-wrapper')
-					.fadeIn();
+function noticeNoPins (objname) {
+	var NOTICEPINSHTML = '<h4 id="no-tags-message" style="margin: 10px 10px; color: #666; font-size: 14px; display: none"></h4>';
+	if (!$(".tags-wrapper .pin")[0]) {
+		if (!$("#no-tags-message")[0])
+			$(NOTICEPINSHTML)
+				.html("» No "+objname+"s were found.")
+					.hide().appendTo('ul.tags-wrapper').fadeIn();
+	}
+	else {
+		if ($("#no-tags-message")[0])
+			$("#no-tags-message").fadeOut(function () { this.remove(); });
+	}
 }
 
-
-
-
-/**********************************************/
-/**********************************************/
-/*********** WORDS RELATED FUNCTIONS ***********/
-/**********/
-/**********/
 
 /**************************************/
 /* ADD-WORD/EDIT-WORD BOXES functions */
@@ -173,9 +173,6 @@ function hideEditWrapper () {
 	});
 }
 
-/////////////////////////
-
-
 function makeEditWordWrapper (dict) {
 	var elm = $(Mustache.render($('script#edit-box')[0].innerHTML, dict))
 	elm.find("[name=word]").bind('keyup paste', function () { showMeaning(this); });
@@ -191,9 +188,9 @@ function makeEditListWrapper (dict) {
 	$("#edit-wrapper [autofocus]").focus();
 }
 
-/**********************************/
+/*********************************/
 /* EditorWrapper caller creation */
-/********************************/
+/*********************************/
 
 function makeAddWrapperCreator (objname, renderer) {
 	return function () {
@@ -227,8 +224,9 @@ function makeApiCaller (action, objname, url_template, callback) {
 			data: form,
 			type: actionMap[action],
 			success: function (data, status) {
-				flash_message(data['text']);
-				callback(JSON.parse(data.object));
+				for (var i=0; data.messages && i<data['messages'].length; i++)
+					flash_message(data.messages[i]);
+				callback(JSON.parse(data.object)[0]);
 				hideEditWrapper();
 			}
 		});
@@ -238,7 +236,8 @@ function makeApiCaller (action, objname, url_template, callback) {
 
 window.onload = function () {
 
-	Mustache.tags = ['[[', ']]'];
+	if (window.Mustache)
+		window.Mustache.tags = ['[[', ']]'];
 
 	if (document.querySelector('body.lists')) {
 
@@ -257,8 +256,8 @@ window.onload = function () {
 		addList = makeAddWrapperCreator('list', makeEditListWrapper, listDb)
 		editList = makeEditWrapperCreator('list', makeEditListWrapper, listDb)
 		
-		if (!lists[0]) 
-			show_no_tags_message("» no lists found");
+		if (!lists[0])
+			noticeNoPins('list');
 		else {
 			lists = $(window.lists).sort(getSortFunc());
 			for (var i=0; i<window.lists.length; i++) {
@@ -284,7 +283,7 @@ window.onload = function () {
 		editWord = makeEditWrapperCreator('word', makeEditWordWrapper, wordDb)
 
 		if (!words[0])
-			show_no_tags_message("» no words found");
+			noticeNoPins('word');
 		else {
 			words = $(words).sort(getSortFunc());
 			for (var i=0; i<words.length; i++)
@@ -309,6 +308,7 @@ function objPinCreator (objname, html) {
 			}
 		}
 		pin.appendTo('.tags-wrapper');
+		noticeNoPins();
 	}
 }
 
@@ -322,7 +322,7 @@ function objPinUpdater (objname, html) {
 			}
 		}
 		pin[0].innerHTML = $(Mustache.render(html, data))[0].innerHTML;
-	} 
+	}
 }
 
 function objPinRemover (objname) {
@@ -331,6 +331,7 @@ function objPinRemover (objname) {
 		var pin = $(".list[data-id='"+data.id+"']");
 		pin.fadeOut(function () {
 			pin.remove();
+			noticeNoPins(objname);
 		});
 	}
 }

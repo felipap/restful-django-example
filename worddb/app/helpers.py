@@ -48,8 +48,6 @@ def toJson(*set):
 	for obj in _data:
 		obj['fields'].update({'id': obj['pk']})
 		data.append(obj['fields'])
-	if len(data) == 1:
-		data = data[0]
 	return simplejson.dumps(data)
 
 
