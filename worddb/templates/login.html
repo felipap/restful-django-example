@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/ html;charset=utf-8" />
+	<title>Log In</title>
+
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+	<script type="text/javascript" src="/static/js/function.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="/static/bootstrap/css/bootstrap.min.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/main.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/buttons.css"></link>
+</head>
+<body class="login">
+
+<div class="wrapper">
+	<h3>Welcome! Login, please</h3>
+	<form class="form" method="post" id="login" action="javascript:login(document.querySelector('form#login'));">
+		{% csrf_token %}
+		<div class="control-group">
+			<input autofocus type="text" name="email" id="inputText" placeholder="Your Email">
+		</div>
+		<div class="control-group">
+			<input type="password" name="password" id="inputPassword" maxlength="50" autocomplete="off" placeholder="Your Password">
+		</div>
+		<div class="control-group">
+			<div class="controls">
+				<button class="btn btn-success blue" type="submit"><strong>Login</strong></button>
+				<a class="btn btn-info" href="/login" title="Back to Login">Register</a>
+			</div>
+		</div>
+	</form>
+</div>
+
+<script type="text/javascript">
+
+_csrf_token = '{{ csrf_token }}';
+
+function login (form) {
+	makeApiCall({
+		url: '/login/',
+		data: $(form).serializeArray(),
+		success: function (data, status) {
+			if (data.success) {
+				flash_message('you\'re being logged in <img src="/static/images/loading.gif" />');
+				setTimeout(function () {
+					location.replace(data['redirect']);
+				}, 1000);
+			} else {
+				d = data.errors;
+				console.log(data.errors);
+				show_errors(data.errors);
+			}
+		},
+	});
+}
+
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

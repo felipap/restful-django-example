@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/ html;charset=utf-8" />
+	<title>Panel of Lists</title>
+
+	<script type="stext/javascript" src="https://raw.github.com/GBKS/Wookmark-jQuery/master/jquery.wookmark.js"></script>
+	<script type="text/javascript" src="https://raw.github.com/janl/mustache.js/master/mustache.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+	<script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/static/jquery-autoresize.js"></script>
+	<script type="text/javascript" src="/static/function.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="/static/bootstrap/css/bootstrap.min.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/Sbuttons.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/main.css"></link>
+
+</head>
+<body class="lists">
+
+	<h2 class="header">
+		Your lists<a href="/logout" class="btn btn-link">Logout</a></h2>
+	</h2>
+
+	<div class="well well-large">
+		<form class="inline-form form-horizontal">
+			<label><h4>Change list ordering</h4></label>
+			<select name="order_by">
+				<option value="name">Order by name</option>
+				<option value="created">Order by time created (oldest to newest)</option>
+				<option value="modified">Order by time modified (oldest to newest)</option>
+			</select>		
+			<button class="btn btn-info" type="submit">Go</button>
+		</form>
+		<button class="btn btn-success" onClick="addList()"><strong>Create List</strong></button>
+	</div>
+
+	<ul class="tags-wrapper"></ul>
+
+
+<script type="text/template" id="edit-box">
+	<div id="edit-wrapper" class="edit-wrapper styled-box">
+		<form class="form-horizontal" onsubmit="return false;" data-id="[[id]]">
+			<input type="hidden" name="id" value="[[id]]" />
+
+			<button class="close" onClick="hideEditWrapper()">&times;</button>
+			<h2 class="box-title">Edit a List:</h2>
+
+			<div class="control-group">
+				<label class="control-label">list name:</label>
+				<div class="controls">
+					<textarea autofocus name="label" class="input-large">[[label]]</textarea>
+				</div>
+			</div>
+
+			<div class="control-gorup">
+				<label class="control-label">description:</label>
+				<div class="controls">
+					<textarea name="description" class="input-large">[[description]]</textarea>
+				</div>
+			</div>
+
+			<button id="b1" class="btn btn-success unselectable" onClick="[[B1.func]](this.parentElement)"><strong>[[B1.label]]</strong></button>
+			<button id="b2" class="btn btn-danger unselectable" onClick="[[B2.func]](this.parentElement)">[[B2.label]]</button>
+		</form>
+		<div id="blackout"></div>
+	</div>
+</script>
+
+<script type="text/template" id="list-tag-html">
+	<li class="pin list" tabindex="0" onClick="location.href='/lists/'+this.dataset['id']"
+		data-label="[[label]]" data-description="[[description]]" data-id="[[id]]">
+		<div class="tag primary-tag">
+			<span>[[label]]</span>
+			<button class="btn btn-small btn-success edit-button" onClick="event.stopPropagation(); editList(this.parentElement.parentElement); "><strong>edit</strong></button>
+		</div>
+	</li>
+</script>
+
+
+<script type="text/javascript">
+
+(function () {
+
+	window._csrf_token = '{{csrf_token}}';
+	window.listpinHTML = $("script#list-tag-html")[0].innerHTML;
+	window.lists = {{serialized_lists|safe}};
+	window.getSortFunc = makeSortFuncGetter({
+			'created':	function (obj) { return new Date(obj.created_on); },
+			'modified': function (obj) { return new Date(obj.last_modified); },
+		}, function (obj) { return obj.label.toLowerCase(); })
+
+})();
+
+</script>
+</body>
+</html>
