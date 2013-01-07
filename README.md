@@ -18,7 +18,7 @@ a REST api in mind.
 
 Todo:
 -----
-* Implement auto variable fetcher for the Handlers views.
+* Implement an object fetcher for subclasses of RESTHandler in app.views.
 
   [1]: https://bitbucket.org/jespern/django-piston/wiki/Home "django-piston"
   [2]: https://github.com/toastdriven/django-tastypie "tastypie"
