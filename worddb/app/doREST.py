@@ -104,13 +104,13 @@ class RESTHandler(RESTBasicHandler):
 	# These don't act on an object in particular.	
 	objActions = {
 		'GET': 'get',
-		'POST': 'update',
+		'PUT': 'update',
 		'DELETE': 'delete',
 	}
 
 	# These do.
 	setActions = {
-		'PUT': 'create',
+		'POST': 'create',
 		'GET': 'getAll',
 	}
 

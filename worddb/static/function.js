@@ -29,7 +29,7 @@ function makeApiCall (customArgs) {
 	ajaxArgs = {
 		context: this,
 		dataType: 'JSON',
-		type: 'POST',
+		type: 'PUT',
 		beforeSend: beforeSend,
 		error: error,
 		success: success
@@ -211,8 +211,8 @@ function makeEditWrapperCreator (objname, func) {
 }
 
 actionMap = {
-	create: 'PUT',
-	update: 'POST',
+	create: 'POST',
+	update: 'PUT',
 	delete: 'DELETE'
 }
 
@@ -274,7 +274,7 @@ window.onload = function () {
 		}
 
 		wordDb = {
-			create: makeApiCaller('create', 'words', '/lists/[[list]]/words',		 objPinCreator('word', wordpinHTML)),
+			create: makeApiCaller('create', 'words', '/lists/[[list]]/words/',		 objPinCreator('word', wordpinHTML)),
 			update: makeApiCaller('update', 'words', '/lists/[[list]]/words/[[id]]', objPinUpdater('word', wordpinHTML)),
 			delete: makeApiCaller('delete', 'words', '/lists/[[list]]/words/[[id]]', objPinRemover('word')),
 		}
