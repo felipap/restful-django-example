@@ -1,3 +1,6 @@
+A RESTful Django project
+========================
+
 A very simple REST application using django and ajax. Really CRUD-like.
 
 Django, natively, makes it hard to implement a RESTful application (it doesn't even
