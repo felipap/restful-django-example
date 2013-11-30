@@ -1,23 +1,16 @@
-A RESTful Django project
-========================
+A RESTful Django
+================
 
-A very simple REST application using django and ajax. Really CRUD-like.
+A sample REST application using django and ajax.
 
-Django, natively, makes it hard to implement a RESTful application (it doesn't even
-handle data passed in PUT/DELETE requests as it does in GET/POST ones). This project
-is just an example of a basic "problem-specific" RESTful interface to django.
 
-I took my very first crappy django project, a manager to organize lists of words in
-english, and re-implemented it following RESTs principles. The application logic is
-inside app.views, app.doREST and app.helpers. The javascript, 'wordb/static/function.js',
-is responsible for the interface dynamics (including most of the templating work).
-No, I didn't use backboneJS or any other skeleton like that: the data is stored in the DOM,
-using HTML5 datasets. Maybe I'll do it later. The js is ugly but it's working.
+Natively, Django makes it hard to implement a REST app. It doesn't even handle data passed to PUT/DELETE requests the same way it does with GET/POST. The projcet is just an example of a specific RESTful interface to be used with django.
 
-I've taken a look at other REST wrappers to django (such as [django-piston][1] and 
-[toastdriven][2]), but they all seemed either too ugly or too complex for this little,
-useless application. In a way, this was simply rewrote django's class-based-views with
-a REST api in mind.
+I took a django project (a manager to organize lists of words in english), and re-implemented it following REST. The logic is inside app.views, app.doREST and app.helpers. The javascript, 'wordb/static/function.js', is responsible for the interface dynamics (including most of the templating work).
+
+I chose not to use backbonejs or any client-side frameworks like that, but adding should be easy enough. For now, data is stored in the DOM (ugly, right?), using HTML5 datasets.
+
+I've taken a look at other REST wrappers to django (such as [django-piston][1] and [toastdriven][2]), but they seemed  overly-complex for this minimalistic app. I simply re-wrote django's class-based-views with a REST api in mind.
 
 Todo:
 -----
