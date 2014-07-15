@@ -10,13 +10,11 @@ import pdb
 from django.shortcuts import redirect
 
 # Project stuff
-from app.models import User, List, Word, get_hash, UserForm, ListForm, WordForm
-from app.doREST import RESTBasicHandler, RESTHandler
-from app.helpers import RaisableRedirect, Json404 # Exceptions
-from app.helpers import get_object_or_json404
-from app.helpers import renderHTML, renderJSON, toJson
-
-logging.info("oi")
+from worddb.app.models import User, List, Word, get_hash, UserForm, ListForm, WordForm
+from worddb.app.doREST import RESTBasicHandler, RESTHandler
+from worddb.app.helpers import RaisableRedirect, Json404 # Exceptions
+from worddb.app.helpers import get_object_or_json404
+from worddb.app.helpers import renderHTML, renderJSON, toJson
 
 # TODOs:
 # Get logging to work.
@@ -24,7 +22,7 @@ logging.info("oi")
 # Rename css elements.
 # Add search to words.
 # Remove ugly toolbox.
-# I have aligned them!
+# Yes, I did align'em.
 
 # JSON data convention:
 ## succes: 	True|False	=> indicates wheter the action succeded
@@ -37,10 +35,9 @@ def _setup_session(session, user):
 	session['userid'] = user.id
 
 
-
 class LoginHandler(RESTBasicHandler):
 	""" Called when the user hits '/login' """
-	
+
 	def __call__(self, request, *args, **kwargs):
 		"""
 		Overrides parent's method to check if user is logged out. If it does,
@@ -57,7 +54,7 @@ class LoginHandler(RESTBasicHandler):
 		return dict()
 
 	@renderJSON
-	def post(request, form):
+	def put(request, form):
 		email = form.get('email')
 		password = form.get('password')
 		if not all((email, password)):
@@ -67,12 +64,12 @@ class LoginHandler(RESTBasicHandler):
 			user = User.objects.get(email=email, password=get_hash(password))
 		except User.DoesNotExist:
 			raise Json404() #! Should the response be more specific?
+		print("Yes, been here")
 		_setup_session(request.session, user)
 		return {
 			'success': True,
 			'redirect': '/lists?welcome=1'
 		}
-
 
 
 class SignInHandler(RESTBasicHandler):
@@ -168,11 +165,11 @@ class ListHandler(RESTHandler):
 			if arg in form:
 				if list_form[arg].errors:
 					errors += list_form[arg].errors
-				else: 
+				else:
 					setattr(list, arg, form[arg])
 		if errors:
 			return dict(success=False, errors=errors)
-		
+
 		list.save()
 		return {
 			'success': 	True,
@@ -210,13 +207,13 @@ class WordHandler(RESTHandler):
 	# @require_args('listid', 'word', 'meaning', 'origin')
 	def create(request, user, form, list_id):
 		list = get_object_or_json404(List, id=list_id)
-		
+
 		# test incoming data
 		word_form = WordForm(form)
 		if not word_form.is_valid():
 			errors = sum(word_form.errors.values(), [])
 			return dict(success=False, errors=errors)
-		
+
 		fields = dict()
 		for arg in ('word', 'meaning', 'origin'):
 			fields[arg] = form[arg]
@@ -230,7 +227,7 @@ class WordHandler(RESTHandler):
 
 	@renderJSON
 	def update(request, user, form, list_id, word_id):
-		list = get_object_or_json404(List, id=list_id)	
+		list = get_object_or_json404(List, id=list_id)
 		word = get_object_or_json404(Word, id=word_id, list=list)
 
 		errors = []
@@ -243,7 +240,7 @@ class WordHandler(RESTHandler):
 					setattr(word, arg, form[arg])
 		if errors:
 			return dict(success=False, errors=errors)
-		
+
 		word.save()
 		return {
 			'success': 	True,
@@ -253,11 +250,11 @@ class WordHandler(RESTHandler):
 
 	@renderJSON
 	def delete(request, user, form, list_id, word_id):
-		list = get_object_or_json404(List, id=list_id)	
+		list = get_object_or_json404(List, id=list_id)
 		word = get_object_or_json404(Word, id=word_id, list=list)
 		json = toJson(word)
 		word.delete()
-		
+
 		return {
 			'success': 	True,
 			'messages': ['word \'%s\' removed from %s ' % (word.word, list.label)],

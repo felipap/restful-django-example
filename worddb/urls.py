@@ -13,9 +13,11 @@ REGEX_VARS = {
     'word_id': '[\w\d,. -]+'
 }
 
+from django.views.generic.base import RedirectView
+
 urlpatterns = patterns('',
     url(r'^$',
-        'django.views.generic.simple.redirect_to', {'url': 'login/'}),
+        RedirectView.as_view(url='login/')),
     url(r'^signin/$',
         SignInHandler()),
     url(r'^login/$',

@@ -37,6 +37,7 @@ class RESTBasicHandler(object):
 			# Handler for such method was not defined.
 			raise Http404, "Invalid call."
 		except AttributeError:
+			print(dir(self), self.actions[request.method])
 			# Handlers misconfigured/not coded.
 			raise BadProgramming, "My mama codes better than you!"
 		form = self._get_form_data(request, request.method)

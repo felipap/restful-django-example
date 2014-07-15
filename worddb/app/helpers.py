@@ -10,12 +10,11 @@ from django.shortcuts import get_object_or_404
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
-from django.utils import simplejson
+import json
 from django.core.serializers import serialize 
 
 # Project stuff
-from app.models import User
-
+from worddb.app.models import User
 
 
 ## HELPERS
@@ -42,13 +41,13 @@ def get_object_or_json404(*args, **kwargs):
 
 
 def toJson(*set):
-	_data = simplejson.loads(serialize('json', set))
+	_data = json.loads(serialize('json', set))
 	print set, _data
 	data = []
 	for obj in _data:
 		obj['fields'].update({'id': obj['pk']})
 		data.append(obj['fields'])
-	return simplejson.dumps(data)
+	return json.dumps(data)
 
 
 ## CUSTOM EXCEPTIONS
@@ -94,11 +93,11 @@ class CustomMiddleware(object):
 	""" Custom middleware to catch custom exceptions by the application. """
 
 	def process_exception(self, request, exception):
-		import app.helpers
+		import worddb.app.helpers
 		print exception, type(exception)
-		if isinstance(exception, app.helpers.Json404):
+		if isinstance(exception, worddb.app.helpers.Json404):
 			print exception.object
-			return HttpResponse(simplejson.dumps(exception.object), mimetype='application/json', status=404)
+			return HttpResponse(json.dumps(exception.object), content_type='application/json', status=404)
 		elif isinstance(exception, RaisableRedirect):
 			return redirect(exception.url)
 
@@ -111,12 +110,12 @@ def renderJSON(func):
 	"""
 	def wrapper(*args, **kwargs):
 		return HttpResponse(
-			simplejson.dumps(func(*args, **kwargs)),
-			mimetype="application/json")
+			json.dumps(func(*args, **kwargs)),
+			content_type="application/json")
 	return wrapper
 
 
-def renderHTML(template=None, mimetype=None):
+def renderHTML(template=None, content_type=None):
 	# source: https://bitbucket.org/offline/django-annoying/src/tip/annoying/decorators.py
 	"""
 	Decorator for Django views that sends returned dict to render_to_response 
@@ -128,7 +127,7 @@ def renderHTML(template=None, mimetype=None):
 
 	Parameters:
 	 - template: template name to use
-	 - mimetype: content type to send in response headers
+	 - content_type: content type to send in response headers
 
 	Examples:
 	# 1. Template name in decorator parameters
@@ -177,6 +176,6 @@ def renderHTML(template=None, mimetype=None):
 				output['csrf_token'] = csrf(request)['csrf_token']
 			
 			return render_to_response(tmpl, output, \
-						context_instance=RequestContext(request), mimetype=mimetype)
+						context_instance=RequestContext(request), content_type=content_type)
 		return wrapper
 	return renderer
